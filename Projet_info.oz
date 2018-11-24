@@ -152,10 +152,11 @@ local
 			[] stretch(factor:F P) then
 				{StretchTransformation F {PartitionConvert P}}
 			[] drone(note:N amount:A) then
-				{DroneTransformation N A})
-			[] transpose(semitones:ST P) then
+				{DroneTransformation N A}
+			[] transpose(semitones:SN P) then
 				{TransposeTransformation SN {PartitionConvert P}}
-			else nil end
+			else erreur(content:Tr comment:erreur_dans_la_fonction_tranformation_convert) 
+         end
 		end
 
 		%Retourn si N est au format d'une note
@@ -168,9 +169,13 @@ local
                elseif {Record.toListInd Atom $}\=nil then false
                elseif {Record.toListInd Atom $}==nil then
                   if {VirtualString.length Atom $}\=1 andthen {VirtualString.length Atom $}\=2 then false
-                  else true end
-               else false end
-         else false end
+                  else true 
+                  end
+               else false
+               end
+            end
+         else false 
+         end
       end
    
 		%Retourn si N est au format d'un accord
@@ -218,6 +223,7 @@ local
 				elseif {IsTransformation H} then
 					{TransformationConvert H}|{PartitionConvert T}
 				else error(cause:H comment:partitionItemNoDetected)
+            end
 			end
 		end
 	in
@@ -226,19 +232,20 @@ local
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-   	fun {Mix P2T Music}
-	  	% TODO
-	  	{Project.readFile 'wave/animaux/cow.wav'}
-   	end
+   fun {Mix P2T Music}
+   	%PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE
+      %{Project.readFile 'wave/animaux/cow.wav'}
+      nil
+   end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   %PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE
+   %Music = {Project.load 'joy.dj.oz'}
+   Start
 
-   	Music = {Project.load 'joy.dj.oz'}
-   	Start
-
-   	% Uncomment next line to insert your tests.
-   	% \insert 'tests.oz'
-   	% !!! Remove this before submitting.
+   % Uncomment next line to insert your tests.
+   % \insert 'tests.oz'
+   % !!! Remove this before submitting.
 in
    	Start = {Time}
 
@@ -247,11 +254,13 @@ in
 
    	% Add variables to this list to avoid "local variable used only once"
    	% warnings.
-   	{ForAll [NoteToExtended Music] Wait}
+	%PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE 
+      %{ForAll [NoteToExtended Music] Wait}
    
    	% Calls your code, prints the result and outputs the result to `out.wav`.
    	% You don't need to modify this.
-   	{Browse {Project.run Mix PartitionToTimedList Music 'out.wav'}}
+	%PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE
+      %{Browse {Project.run Mix PartitionToTimedList Music 'out.wav'}}
    
    	% Shows the total time to run your code.
    	{Browse {IntToFloat {Time}-Start} / 1000.0}
