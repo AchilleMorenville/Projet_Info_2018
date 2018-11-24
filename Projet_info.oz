@@ -1,6 +1,6 @@
 local
 	% See project statement for API details.
-	[Project] = {Link ['Project2018.ozf']}
+	%[Project] = {Link ['Project2018.ozf']}
 	Time = {Link ['x-oz://boot/Time']}.1.getReferenceTime
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -44,25 +44,22 @@ local
 
 		    %Modifie la durÃ©e des Ã©lements de la FlatPartition par Duration
       		fun{DurationTransformation Duration FlatPartition}
-
-        		%Retourn la la note Ã©tendu avec la durÃ©e remplacÃ© par Duration
-	   			fun{GetDurationExtendedNote N}
-    				case N of silence(duration:D) then silence(duration:Duration)
-    		  		[] note(name:N octave:O sharp:S duration:D instrument:I) then
-        			note(name:N octave:O sharp:S duration:Duration instrument:I)
-      				end
-   				end
-   			in
-   				case FlatPartition of nil then nil
-   				[] H|T then 
-      				if {IsExtendedNote H} then
-        	 			{GetDurationExtendedNote H}|{DurationTransformation Duration T}
-      				elseif{IsExtendedChord H} then
-        			 	{GetDurationExtendedNote H}|{DurationTransformation Duration T}
-      				else erreurTransformation|nil
-      				end
-      			end  
-   			end
+              fun{GetDurationParition P Acc}
+                 case P of nil then Acc
+                 [] H|T then 
+                    if {IsExtendedNote H} then
+                      {GetDurationParition T Acc+H.duration}  
+                    elseif {IsExtendedChord H} then
+                      {GetDurationParition T Acc+H.1.duration}
+                    end
+                 end
+              end
+           in
+              local Factor in
+                 Factor=Duration/{GetDurationParition FlatPartition 0.0}
+                 {StretchTransformation Factor FlatPartition}
+              end 
+           end
       
       		fun{DroneTransformation Element NBR}
    				case Element of H|T then
