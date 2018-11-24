@@ -233,7 +233,6 @@ local
    	%PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE
       %{Project.readFile 'wave/animaux/cow.wav'}
 
-
       %retourne si l'input est un Samples:= Tableau de Sample
       fun{IsSamples S}
         case S of nil then true
@@ -256,15 +255,14 @@ local
         [] repeat(amount:R M) then true
         [] loop(duration:D M) then true
         [] clip(low:S1 high:S2 M) then true
-        [] echo(delay:D M)then true
-        [] fade(in:D1 out:D2 M) then true
-        [] cut(start:D1 end:D2 M) then true
+        [] echo(delay:D decay:F M)then true
+        [] fade(start:D1 out:D2 M) then true
+        [] cut(start:D1 finish:D2 M) then true
         else false
         end
       end
 
-      %**FONCTION  MAIN  L'argument P2T etant constant, pas besoin de le mettre dans les arguments de cette fonction. 
-      %Le fait d'être en argument de {Mix P2T Music} est suffisant
+      %FONCTION  MAIN 
       fun{MixConvert M}
          nil
       end
@@ -272,7 +270,7 @@ local
    in
       if Music==nil then nil
       else
-         {MixConvert P}
+         {MixConvert Music}
       end
 
    end
