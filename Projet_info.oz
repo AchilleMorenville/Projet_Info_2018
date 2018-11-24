@@ -232,7 +232,49 @@ local
    fun {Mix P2T Music}
    	%PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE
       %{Project.readFile 'wave/animaux/cow.wav'}
-      nil
+
+
+      %retourne si l'input est un Samples:= Tableau de Sample
+      fun{IsSamples S}
+        case S of nil then true
+        []H|T then 
+          if{Number.is H $}==false then false
+          else {IsSamples T}
+          end
+        else error(cause:S comment:forat_de_samples)
+        end
+      end
+
+      %retourn si l'input est un atom => correspond un input de type lien de fichier
+      fun{IsWave W}
+        {Atom.is W $}
+      end
+
+      %retourn si l'input est un Filte
+      fun{IsFilter F}
+        case F of reverse(A) then true
+        [] repeat(amount:R M) then true
+        [] loop(duration:D M) then true
+        [] clip(low:S1 high:S2 M) then true
+        [] echo(delay:D M)then true
+        [] fade(in:D1 out:D2 M) then true
+        [] cut(start:D1 end:D2 M) then true
+        else false
+        end
+      end
+
+      %**FONCTION  MAIN  L'argument P2T etant constant, pas besoin de le mettre dans les arguments de cette fonction. 
+      %Le fait d'être en argument de {Mix P2T Music} est suffisant
+      fun{MixConvert M}
+         nil
+      end
+
+   in
+      if Music==nil then nil
+      else
+         {MixConvert P}
+      end
+
    end
 
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
