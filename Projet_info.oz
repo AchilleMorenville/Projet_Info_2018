@@ -281,7 +281,7 @@ local
 
       %retoure l'échantillon de la note
       %retourn sous la forme d'un enregistrement '|'(_ _) / list sans le nil 
-      fun{GetEchantillons N IStart}
+      fun{GetNoteEchantillons N IStart}
          fun{GetEchantillon N I}
             H F PI 
          in 
