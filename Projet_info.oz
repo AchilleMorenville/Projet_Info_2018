@@ -262,6 +262,55 @@ local
         end
       end
 
+      %Retourne la hauteur d'une note
+      %fac == -1 si la note est en dessou de a4 et ==1 si au dessus de a4
+      fun{GetHauteur N}
+        fun{GetHauteurBis N Fac Acc}
+            if N.name==a andthen N.octave==4 then Acc
+            else
+              {GetHauteurBis {TransposeNote Fac*(~1) N} Fac Acc+Fac}
+            end
+        end
+      in
+        if EN.octave<4 then {GetHauteurBis N ~1 0}
+        elseif EN.octave>4 then {GetHauteurBis N 1 0}
+        elseif EN.name<c then {GetHauteurBis N 1 0}
+        elseif EN.name>b  then {GetHauteurBis N ~1 0}
+        end
+      end
+
+      %retoure l'échantillon de la note
+      %retourn sous la forme d'un enregistrement '|'(_ _) / list sans le nil 
+      fun{GetEchantillons N IStart}
+         fun{GetEchantillon N I}
+            H F PI 
+         in 
+            PI=3.14159265359
+            H={GetHauteur N}
+            F={Number.pow 2 H/12 $}
+            1/2*{Float.sin (2*PI*F*I/44100) $}
+         end
+         fun{ListOfNTimeEchantillon N I}
+            if {Float.toInt (N.duration*44100.0+IStart) $} == I then {GetEchantillon N I}
+            else {GetEchantillon N I}|{ListOfNTimeEchantillon N I+1}
+            end
+         end
+      in
+         case N of silence(duration:D) then
+            local
+               fun{GetNTime Element Acc}
+                  if Acc==1 then Element
+                  else{GetNTime Element Acc-1}
+                  end
+               end
+            in
+               {GetNTime 0 D*44100}
+            end
+         []note(name:N octave:O sharp:S duration:D instrument:I) then {ListOfNTimeEchantillon N 0}
+         end
+      end
+
+
       %FONCTION  MAIN 
       fun{MixConvert M}
          nil
