@@ -299,8 +299,9 @@ local
 
        fun{GetNoteEchantillons Note IStart}
 
+          %retourn un tableau avec les echantillons d une note
           fun{ListOfNTimeEchantillon N I}
-               if {Float.toInt (N.duration)*44100.0}+IStart =< I then {GetEchantillon N I}
+               if {Float.toInt (N.duration)*44100.0}+IStart < I then nil
                else {GetEchantillon N I}|{ListOfNTimeEchantillon N I+1}
                end
           end
@@ -318,14 +319,26 @@ local
          nil
       end
 
+      fun{SumTwoList L1 L2 Acc}
+          case L1 of nil then Acc
+          [] H|T then {SumTwoList L1.2 L2.2 ACC+L1.1+L2.2}
+          end 
+      end
+
       fun{PartitionToSample Partition Index}
           case Partition 
           of nil then nil 
           []H|T then
             case H 
             of M1 then %c est une note
-              {GetNoteEchantillons H Index}|{PartitionToSample T Index+H.duration*44100}
+              {Append {GetNoteEchantillons H Index} {PartitionToSample T Index+H.duration*44100}}
             [] M1|M2 then 
+                local 
+                  fun{SumChordSample Chord}
+                  end
+                in
+                  {SumChordSample H}}|{PartitionToSample T Index.H.1.duration*44100}
+                end
             end 
           end
       end
