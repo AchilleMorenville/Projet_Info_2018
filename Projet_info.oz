@@ -1,6 +1,6 @@
 local
 	% See project statement for API details.
-	[Project] = {Link ['Project2018.ozf']}
+	%[Project] = {Link ['Project2018.ozf']}
 	Time = {Link ['x-oz://boot/Time']}.1.getReferenceTime
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -44,25 +44,22 @@ local
 
 		    %Modifie la durÃ©e des Ã©lements de la FlatPartition par Duration
       		fun{DurationTransformation Duration FlatPartition}
-
-        		%Retourn la la note Ã©tendu avec la durÃ©e remplacÃ© par Duration
-	   			fun{GetDurationExtendedNote N}
-    				case N of silence(duration:D) then silence(duration:Duration)
-    		  		[] note(name:N octave:O sharp:S duration:D instrument:I) then
-        			note(name:N octave:O sharp:S duration:Duration instrument:I)
-      				end
-   				end
-   			in
-   				case FlatPartition of nil then nil
-   				[] H|T then 
-      				if {IsExtendedNote H} then
-        	 			{GetDurationExtendedNote H}|{DurationTransformation Duration T}
-      				elseif{IsExtendedChord H} then
-        			 	{GetDurationExtendedNote H}|{DurationTransformation Duration T}
-      				else erreurTransformation|nil
-      				end
-      			end  
-   			end
+              fun{GetDurationParition P Acc}
+                 case P of nil then Acc
+                 [] H|T then 
+                    if {IsExtendedNote H} then
+                      {GetDurationParition T Acc+H.duration}  
+                    elseif {IsExtendedChord H} then
+                      {GetDurationParition T Acc+H.1.duration}
+                    end
+                 end
+              end
+           in
+              local Factor in
+                 Factor=Duration/{GetDurationParition FlatPartition 0.0}
+                 {StretchTransformation Factor FlatPartition}
+              end 
+           end
       
       		fun{DroneTransformation Element NBR}
    				case Element of H|T then
@@ -235,7 +232,96 @@ local
    fun {Mix P2T Music}
    	%PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE
       %{Project.readFile 'wave/animaux/cow.wav'}
-      nil
+
+      %retourne si l'input est un Samples:= Tableau de Sample
+      fun{IsSamples S}
+        case S of nil then true
+        []H|T then 
+          if{Number.is H $}==false then false
+          else {IsSamples T}
+          end
+        else error(cause:S comment:forat_de_samples)
+        end
+      end
+
+      %retourn si l'input est un atom => correspond un input de type lien de fichier
+      fun{IsWave W}
+        {Atom.is W $}
+      end
+
+      %retourn si l'input est un Filte
+      fun{IsFilter F}
+        case F of reverse(A) then true
+        [] repeat(amount:R M) then true
+        [] loop(duration:D M) then true
+        [] clip(low:S1 high:S2 M) then true
+        [] echo(delay:D decay:F M)then true
+        [] fade(start:D1 out:D2 M) then true
+        [] cut(start:D1 finish:D2 M) then true
+        else false
+        end
+      end
+
+      %Retourne la hauteur d'une note
+      %fac == -1 si la note est en dessou de a4 et ==1 si au dessus de a4
+      fun{GetHauteur N}
+        fun{GetHauteurBis N Fac Acc}
+            if N.name==a andthen N.octave==4 then Acc
+            else
+              {GetHauteurBis {TransposeNote Fac*(~1) N} Fac Acc+Fac}
+            end
+        end
+      in
+        if EN.octave<4 then {GetHauteurBis N ~1 0}
+        elseif EN.octave>4 then {GetHauteurBis N 1 0}
+        elseif EN.name<c then {GetHauteurBis N 1 0}
+        elseif EN.name>b  then {GetHauteurBis N ~1 0}
+        end
+      end
+
+      %retoure l'échantillon de la note
+      %retourn sous la forme d'un enregistrement '|'(_ _) / list sans le nil 
+      fun{GetNoteEchantillons N IStart}
+         fun{GetEchantillon N I}
+            H F PI 
+         in 
+            PI=3.14159265359
+            H={GetHauteur N}
+            F={Number.pow 2 H/12 $}
+            1/2*{Float.sin (2*PI*F*I/44100) $}
+         end
+         fun{ListOfNTimeEchantillon N I}
+            if {Float.toInt (N.duration*44100.0+IStart) $} == I then {GetEchantillon N I}
+            else {GetEchantillon N I}|{ListOfNTimeEchantillon N I+1}
+            end
+         end
+      in
+         case N of silence(duration:D) then
+            local
+               fun{GetNTime Element Acc}
+                  if Acc==1 then Element
+                  else{GetNTime Element Acc-1}
+                  end
+               end
+            in
+               {GetNTime 0 D*44100}
+            end
+         []note(name:N octave:O sharp:S duration:D instrument:I) then {ListOfNTimeEchantillon N 0}
+         end
+      end
+
+
+      %FONCTION  MAIN 
+      fun{MixConvert M}
+         nil
+      end
+
+   in
+      if Music==nil then nil
+      else
+         {MixConvert Music}
+      end
+
    end
 
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -261,7 +347,29 @@ in
    	% You don't need to modify this.
 	%PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE
       %{Browse {Project.run Mix PartitionToTimedList Music 'out.wav'}}
-   
+
+  
+  %**********TEST*****************  
+   local 
+      proc{Test}
+         N1 C1 EN1 N2 C2 T T2 P T3 P2 T4
+            in
+         N1=a3
+         C1=[a b#4]
+         N2=e
+         EN1=note(name:c octave:4 sharp:true duration:4 instrument:piano)
+         T=duration(seconds:3.0 [N1 N2])
+         T2=drone(note:C1 amount:2)
+        T3=stretch(factor:2.0 [N1])
+        T4=transpose(seminotes:3 [C1])
+         P=[N1 C1 N2 EN1 T T2]
+         P2=[T]
+         {Browse {PartitionToTimedList P2}}
+      end
+   in
+      %{TestDroneTransformation}
+      {Test}
+   end
    	% Shows the total time to run your code.
    	{Browse {IntToFloat {Time}-Start} / 1000.0}
 end
