@@ -109,7 +109,7 @@ local
         				else {ChordToExtended Element}|{DroneTransformation Element NBR-1}
         				end
      				[]H then
-        				if NBR==1 then {NoteToExtended Element}
+        				if NBR==0 then nil
         				else {NoteToExtended Element}|{DroneTransformation Element NBR-1}
         				end
      				end
@@ -134,7 +134,6 @@ local
       		end
 
       		fun{TransposeTransformation ST P}
-
       			case P
       			of nil then nil
       			[] H|T then
@@ -162,7 +161,6 @@ local
          case N
          of Name#Octave then true
          [] Atom then
-            local B in
                if Atom == silence then true
                elseif {Record.toListInd Atom $}\=nil then false
                elseif {Record.toListInd Atom $}==nil then
@@ -171,10 +169,9 @@ local
                   end
                else false
                end
-            end
          else false 
          end
-      end
+    end
    
 		%Retourn si N est au format d'un accord
 		fun{IsChord C}
@@ -205,7 +202,7 @@ local
       	of duration(seconds:D 1:P) then true
       	[]stretch(factor:F P) then true
       	[]drone(note:N amount:A) then true
-      	[]transpose(seminotes:SN P)then true
+      	[]transpose(semitones:SN P)then true
       	else false end 
     	end
 
@@ -219,7 +216,7 @@ local
 				elseif {IsExtendedNote H} then H|{PartitionConvert T}
 				elseif {IsExtendedChord H} then H|{PartitionConvert T} 
 				elseif {IsTransformation H} then
-					{TransformationConvert H}|{PartitionConvert T}
+					{Append {TransformationConvert H} {PartitionConvert T}}
 				else error(cause:H comment:partitionItemNoDetected)
             end
 			end
