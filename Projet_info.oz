@@ -101,7 +101,6 @@ local
 					{StretchTransformation Factor FlatPartition}
 				end 
 			end
-          
 
 			fun{DroneTransformation Element NBR}
 				case Element of H|T then
@@ -125,7 +124,7 @@ local
 					else
 						case H
 						of note(name:N octave:O sharp:S duration:D instrument:I) then
-      						note(name:N octave:O sharp:S duration:(D*F) instrument:I)|{StretchTransformation F T}
+							note(name:N octave:O sharp:S duration:(D*F) instrument:I)|{StretchTransformation F T}
 						else error(cause:H comment:noteItemNoDetected)
 						end
 					end
@@ -188,7 +187,7 @@ local
 			else false
 			end
 		end
-	  
+
 		%Retourn si N est au format d'un extended chord
 		fun{IsExtendedChord EC}
 			case EC of nil then true
