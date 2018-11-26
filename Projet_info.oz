@@ -280,7 +280,7 @@ local
           end
        end
 
-         
+       %retourn un echantillon d une note
        fun{GetEchantillon N I}
           H F PI 
        in 
@@ -290,24 +290,24 @@ local
           0.5*{Float.sin (2.0*PI*F*{Int.toFloat I}/44100.0)}
        end
 
-      
+       %retourn un tableau sans le nil avec N fois Element  telque Acc=N
        fun{GetNTime Element Acc}
           if Acc==1 then Element
           else Element|{GetNTime Element Acc-1}
           end
        end
 
+       %retourn un tableau avec la liste d echantillons d une note.
        fun{GetNoteEchantillons Note IStart}
 
-          %retourn un tableau avec les echantillons d une note
+          %retourn un tableau sans le nil avec les echantillons d une note
           fun{ListOfNTimeEchantillon N I}
                if {Float.toInt (N.duration)*44100.0}+IStart < I then nil
                else {GetEchantillon N I}|{ListOfNTimeEchantillon N I+1}
                end
           end
        in
-          case Note of silence(duration:D) then
-                {GetNTime 0 D*44100}
+          case Note of silence(duration:D) then  {GetNTime 0 D*44100}
           []note(name:N octave:O sharp:S duration:D instrument:I) then {ListOfNTimeEchantillon Note IStart}
           else error(cause:Note comment:input_non_error_dans_echantillion)
           end
@@ -325,19 +325,36 @@ local
           end 
       end
 
+      %retourn un tableau avec les echantillons de la partition
+      %Index est l'
       fun{PartitionToSample Partition Index}
           case Partition 
           of nil then nil 
           []H|T then
             case H 
             of M1 then %c est une note
-              {Append {GetNoteEchantillons H Index} {PartitionToSample T Index+H.duration*44100}}
-            [] M1|M2 then 
+              {GetNoteEchantillons H Index}|{PartitionToSample T Index+M1.duration*44100}
+            [] M1|M2 then % c est un chord
                 local 
-                  fun{SumChordSample Chord}
+                  %retourn les echantillons dun chord sous forme d une liste sans nil
+                  fun{SumChordSample Chord Acc}
+                      case Chord 
+                      of H|nil  then 
+                        if Acc==0 then 
+                            {GetNoteEchantillons H Index}
+                        else
+                            {SumTwoList Acc {GetNoteEchantillons H Index}}
+                        end
+                      [] H|T then 
+                          if Acc==0 then 
+                            {SumChordSample T {GetNoteEchantillons H Index}}
+                          else
+                              {SumChordSample T {SumTwoList Acc {GetNoteEchantillons H Index}}}
+                          end
+                      end
                   end
                 in
-                  {SumChordSample H}}|{PartitionToSample T Index.H.1.duration*44100}
+                  {SumChordSample H 0}}|{PartitionToSample T Index+M1.duration*44100}
                 end
             end 
           end
