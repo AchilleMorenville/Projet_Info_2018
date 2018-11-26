@@ -37,40 +37,82 @@ local
 	end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%retourn la note transposé de N demi-ton
+	fun{TransposeNote ST N}
+		if ST == 0 then N
+		else
+			case N
+			of note(name:N octave:O sharp:S duration:D instrument:I) then
+				if ST < 0 then
+					if N == b andthen S == false then {TransposeNote ST+1 note(name:a octave:O sharp:true duration:D instrument:I)}
+					elseif N == a andthen S == true then {TransposeNote ST+1 note(name:a octave:O sharp:false duration:D instrument:I)}
+					elseif N == a andthen S == false then {TransposeNote ST+1 note(name:g octave:O sharp:true duration:D instrument:I)}
+					elseif N == g andthen S == true then {TransposeNote ST+1 note(name:g octave:O sharp:false duration:D instrument:I)}
+					elseif N == g andthen S == false then {TransposeNote ST+1 note(name:f octave:O sharp:true duration:D instrument:I)}
+					elseif N == f andthen S == true then {TransposeNote ST+1 note(name:f octave:O sharp:false duration:D instrument:I)}
+					elseif N == f andthen S == false then {TransposeNote ST+1 note(name:e octave:O sharp:false duration:D instrument:I)}
+					elseif N == e andthen S == false then {TransposeNote ST+1 note(name:d octave:O sharp:true duration:D instrument:I)}
+					elseif N == d andthen S == true then {TransposeNote ST+1 note(name:d octave:O sharp:false duration:D instrument:I)}
+					elseif N == d andthen S == false then {TransposeNote ST+1 note(name:c octave:O sharp:true duration:D instrument:I)}
+					elseif N == c andthen S == true then {TransposeNote ST+1 note(name:c octave:O sharp:false duration:D instrument:I)}
+					elseif N == c andthen S == false then {TransposeNote ST+1 note(name:b octave:(O-1) sharp:false duration:D instrument:I)}
+					else error(cause:N comment:noteARealNote)
+					end
+				else
+					if N == c andthen S == false then {TransposeNote ST-1 note(name:c octave:O sharp:true duration:D instrument:I)}
+					elseif N == c andthen S == true then {TransposeNote ST-1 note(name:d octave:O sharp:false duration:D instrument:I)}
+					elseif N == d andthen S == false then {TransposeNote ST-1 note(name:d octave:O sharp:true duration:D instrument:I)}
+					elseif N == d andthen S == true then {TransposeNote ST-1 note(name:e octave:O sharp:false duration:D instrument:I)}
+					elseif N == e andthen S == false then {TransposeNote ST-1 note(name:f octave:O sharp:false duration:D instrument:I)}
+					elseif N == f andthen S == false then {TransposeNote ST-1 note(name:f octave:O sharp:true duration:D instrument:I)}
+					elseif N == f andthen S == true then {TransposeNote ST-1 note(name:g octave:O sharp:false duration:D instrument:I)}
+					elseif N == g andthen S == false then {TransposeNote ST-1 note(name:g octave:O sharp:true duration:D instrument:I)}
+					elseif N == g andthen S == true then {TransposeNote ST-1 note(name:a octave:O sharp:false duration:D instrument:I)}
+					elseif N == a andthen S == false then {TransposeNote ST-1 note(name:a octave:O sharp:true duration:D instrument:I)}
+					elseif N == a andthen S == true then {TransposeNote ST-1 note(name:b octave:O sharp:false duration:D instrument:I)}
+					elseif N == b andthen S == false then {TransposeNote ST-1 note(name:c octave:(O+1) sharp:false duration:D instrument:I)}
+					else error(cause:N comment:notRealNote)
+					end
+				end
+			else error(cause:N comment:notNote)
+			end
+		end
+	end
 
 	fun {PartitionToTimedList Partition} 
 
+    	%Excecute une transformation
 		fun{TransformationConvert Tr}
+			%Modifie la durÃ©e des Ã©lements de la FlatPartition par Duration
+			fun{DurationTransformation Duration FlatPartition}
+				fun{GetDurationParition P Acc}
+					case P of nil then Acc
+					[] H|T then 
+						if {IsExtendedNote H} then
+							{GetDurationParition T Acc+H.duration}  
+						elseif {IsExtendedChord H} then
+							{GetDurationParition T Acc+H.1.duration}
+						end
+					end
+				end
+			in
+				local Factor in
+					Factor=Duration/{GetDurationParition FlatPartition 0.0}
+					{StretchTransformation Factor FlatPartition}
+				end 
+			end
+          
 
-		    %Modifie la durÃ©e des Ã©lements de la FlatPartition par Duration
-      		fun{DurationTransformation Duration FlatPartition}
-              fun{GetDurationParition P Acc}
-                 case P of nil then Acc
-                 [] H|T then 
-                    if {IsExtendedNote H} then
-                      {GetDurationParition T Acc+H.duration}  
-                    elseif {IsExtendedChord H} then
-                      {GetDurationParition T Acc+H.1.duration}
-                    end
-                 end
-              end
-           in
-              local Factor in
-                 Factor=Duration/{GetDurationParition FlatPartition 0.0}
-                 {StretchTransformation Factor FlatPartition}
-              end 
-           end
-      
       		fun{DroneTransformation Element NBR}
-   				case Element of H|T then
-      				if NBR==0 then nil
-      				else {ChordToExtended Element}|{DroneTransformation Element NBR-1}
-      				end
-   				[]H then
-      				if NBR==1 then {NoteToExtended Element}
-      				else {NoteToExtended Element}|{DroneTransformation Element NBR-1}
-      				end
-   				end
+     				case Element of H|T then
+        				if NBR==0 then nil
+        				else {ChordToExtended Element}|{DroneTransformation Element NBR-1}
+        				end
+     				[]H then
+        				if NBR==1 then {NoteToExtended Element}
+        				else {NoteToExtended Element}|{DroneTransformation Element NBR-1}
+        				end
+     				end
       		end
 
       		%Attention prend un float en argument
@@ -93,47 +135,6 @@ local
 
       		fun{TransposeTransformation ST P}
 
-      			fun{TransposeNote ST N}
-      				if ST == 0 then N
-      				else
-      					case N
-      					of note(name:N octave:O sharp:S duration:D instrument:I) then
-      						if ST < 0 then
-      						   if N == b andthen S == false then {TransposeNote ST+1 note(name:a octave:O sharp:true duration:D instrument:I)}
-      							elseif N == a andthen S == true then {TransposeNote ST+1 note(name:a octave:O sharp:false duration:D instrument:I)}
-      							elseif N == a andthen S == false then {TransposeNote ST+1 note(name:g octave:O sharp:true duration:D instrument:I)}
-      							elseif N == g andthen S == true then {TransposeNote ST+1 note(name:g octave:O sharp:false duration:D instrument:I)}
-      							elseif N == g andthen S == false then {TransposeNote ST+1 note(name:f octave:O sharp:true duration:D instrument:I)}
-      							elseif N == f andthen S == true then {TransposeNote ST+1 note(name:f octave:O sharp:false duration:D instrument:I)}
-      							elseif N == f andthen S == false then {TransposeNote ST+1 note(name:e octave:O sharp:false duration:D instrument:I)}
-      							elseif N == e andthen S == false then {TransposeNote ST+1 note(name:d octave:O sharp:true duration:D instrument:I)}
-      							elseif N == d andthen S == true then {TransposeNote ST+1 note(name:d octave:O sharp:false duration:D instrument:I)}
-      							elseif N == d andthen S == false then {TransposeNote ST+1 note(name:c octave:O sharp:true duration:D instrument:I)}
-      							elseif N == c andthen S == true then {TransposeNote ST+1 note(name:c octave:O sharp:false duration:D instrument:I)}
-      							elseif N == c andthen S == false then {TransposeNote ST+1 note(name:b octave:(O-1) sharp:false duration:D instrument:I)}
-      							else error(cause:N comment:noteARealNote)
-      							end
-      						else
-      							if N == c andthen S == false then {TransposeNote ST-1 note(name:c octave:O sharp:true duration:D instrument:I)}
-      							elseif N == c andthen S == true then {TransposeNote ST-1 note(name:d octave:O sharp:false duration:D instrument:I)}
-      							elseif N == d andthen S == false then {TransposeNote ST-1 note(name:d octave:O sharp:true duration:D instrument:I)}
-      							elseif N == d andthen S == true then {TransposeNote ST-1 note(name:e octave:O sharp:false duration:D instrument:I)}
-      							elseif N == e andthen S == false then {TransposeNote ST-1 note(name:f octave:O sharp:false duration:D instrument:I)}
-      							elseif N == f andthen S == false then {TransposeNote ST-1 note(name:f octave:O sharp:true duration:D instrument:I)}
-      							elseif N == f andthen S == true then {TransposeNote ST-1 note(name:g octave:O sharp:false duration:D instrument:I)}
-      							elseif N == g andthen S == false then {TransposeNote ST-1 note(name:g octave:O sharp:true duration:D instrument:I)}
-      							elseif N == g andthen S == true then {TransposeNote ST-1 note(name:a octave:O sharp:false duration:D instrument:I)}
-      							elseif N == a andthen S == false then {TransposeNote ST-1 note(name:a octave:O sharp:true duration:D instrument:I)}
-      							elseif N == a andthen S == true then {TransposeNote ST-1 note(name:b octave:O sharp:false duration:D instrument:I)}
-      							elseif N == b andthen S == false then {TransposeNote ST-1 note(name:c octave:(O+1) sharp:false duration:D instrument:I)}
-      							else error(cause:N comment:notRealNote)
-      							end
-      						end
-      					else error(cause:N comment:notNote)
-      					end
-      				end
-      			end
-      		in
       			case P
       			of nil then nil
       			[] H|T then
@@ -265,61 +266,87 @@ local
       %Retourne la hauteur d'une note
       %fac == -1 si la note est en dessou de a4 et ==1 si au dessus de a4
       fun{GetHauteur N}
-        fun{GetHauteurBis N Fac Acc}
-            if N.name==a andthen N.octave==4 then Acc
-            else
-              {GetHauteurBis {TransposeNote Fac*(~1) N} Fac Acc+Fac}
-            end
-        end
-      in
-        if EN.octave<4 then {GetHauteurBis N ~1 0}
-        elseif EN.octave>4 then {GetHauteurBis N 1 0}
-        elseif EN.name<c then {GetHauteurBis N 1 0}
-        elseif EN.name>b  then {GetHauteurBis N ~1 0}
-        end
-      end
+          fun{GetHauteurBis N Fac Acc}
+             if N.name ==a andthen N.octave ==4 then Acc
+             else
+                {GetHauteurBis {TransposeNote Fac*(~1) N} Fac Acc+Fac}
+             end
+          end
+       in
+          if N.octave<4 then {GetHauteurBis N ~1 0}
+          elseif N.octave>4 then {GetHauteurBis N 1 0}
+          elseif N.name<c then {GetHauteurBis N 1 0}
+          elseif N.name>b  then {GetHauteurBis N ~1 0}
+          end
+       end
 
-      %retoure l'échantillon de la note
-      %retourn sous la forme d'un enregistrement '|'(_ _) / list sans le nil 
-      fun{GetNoteEchantillons N IStart}
-         fun{GetEchantillon N I}
-            H F PI 
-         in 
-            PI=3.14159265359
-            H={GetHauteur N}
-            F={Number.pow 2 H/12 $}
-            1/2*{Float.sin (2*PI*F*I/44100) $}
-         end
-         fun{ListOfNTimeEchantillon N I}
-            if {Float.toInt (N.duration*44100.0+IStart) $} == I then {GetEchantillon N I}
-            else {GetEchantillon N I}|{ListOfNTimeEchantillon N I+1}
-            end
-         end
-      in
-         case N of silence(duration:D) then
-            local
-               fun{GetNTime Element Acc}
-                  if Acc==1 then Element
-                  else{GetNTime Element Acc-1}
-                  end
+         
+       fun{GetEchantillon N I}
+          H F PI 
+       in 
+          PI=3.14159265359
+          H={Int.toFloat {GetHauteur N}}
+          F={Number.pow 2.0 H/12.0}
+          0.5*{Float.sin (2.0*PI*F*{Int.toFloat I}/44100.0)}
+       end
+
+      
+       fun{GetNTime Element Acc}
+          if Acc==1 then Element
+          else Element|{GetNTime Element Acc-1}
+          end
+       end
+
+       fun{GetNoteEchantillons Note IStart}
+
+          %retourn un tableau avec les echantillons d une note
+          fun{ListOfNTimeEchantillon N I}
+               if {Float.toInt (N.duration)*44100.0}+IStart < I then nil
+               else {GetEchantillon N I}|{ListOfNTimeEchantillon N I+1}
                end
-            in
-               {GetNTime 0 D*44100}
-            end
-         []note(name:N octave:O sharp:S duration:D instrument:I) then {ListOfNTimeEchantillon N 0}
-         end
-      end
+          end
+       in
+          case Note of silence(duration:D) then
+                {GetNTime 0 D*44100}
+          []note(name:N octave:O sharp:S duration:D instrument:I) then {ListOfNTimeEchantillon Note IStart}
+          else error(cause:Note comment:input_non_error_dans_echantillion)
+          end
+       end
 
 
       %FONCTION  MAIN 
-      fun{MixConvert M}
+      fun{MixConvert M }
          nil
+      end
+
+      fun{SumTwoList L1 L2 Acc}
+          case L1 of nil then Acc
+          [] H|T then {SumTwoList L1.2 L2.2 ACC+L1.1+L2.2}
+          end 
+      end
+
+      fun{PartitionToSample Partition Index}
+          case Partition 
+          of nil then nil 
+          []H|T then
+            case H 
+            of M1 then %c est une note
+              {Append {GetNoteEchantillons H Index} {PartitionToSample T Index+H.duration*44100}}
+            [] M1|M2 then 
+                local 
+                  fun{SumChordSample Chord}
+                  end
+                in
+                  {SumChordSample H}}|{PartitionToSample T Index.H.1.duration*44100}
+                end
+            end 
+          end
       end
 
    in
       if Music==nil then nil
       else
-         {MixConvert Music}
+         {MixConvert Music 0}
       end
 
    end
