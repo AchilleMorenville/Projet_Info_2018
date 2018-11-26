@@ -81,7 +81,7 @@ local
 
 	fun {PartitionToTimedList Partition} 
 
-    	%Excecute une transformation
+		%Excecute une transformation
 		fun{TransformationConvert Tr}
 			%Modifie la durÃ©e des Ã©lements de la FlatPartition par Duration
 			fun{DurationTransformation Duration FlatPartition}
@@ -103,45 +103,45 @@ local
 			end
           
 
-      		fun{DroneTransformation Element NBR}
-     				case Element of H|T then
-        				if NBR==0 then nil
-        				else {ChordToExtended Element}|{DroneTransformation Element NBR-1}
-        				end
-     				[]H then
-        				if NBR==0 then nil
-        				else {NoteToExtended Element}|{DroneTransformation Element NBR-1}
-        				end
-     				end
-      		end
+			fun{DroneTransformation Element NBR}
+				case Element of H|T then
+					if NBR==0 then nil
+					else {ChordToExtended Element}|{DroneTransformation Element NBR-1}
+					end
+				[]H then
+					if NBR==0 then nil
+					else {NoteToExtended Element}|{DroneTransformation Element NBR-1}
+					end
+				end
+			end
 
-      		%Attention prend un float en argument
-      		fun{StretchTransformation F P}
-      			case P
-      			of nil then nil
-      			[] H|T then
-      				if {IsExtendedChord H} then
-      					{StretchTransformation F H}|{StretchTransformation F T}
-      				else
-      					case H
-      					of note(name:N octave:O sharp:S duration:D instrument:I) then
+			%Attention prend un float en argument
+			fun{StretchTransformation F P}
+				case P
+				of nil then nil
+				[] H|T then
+					if {IsExtendedChord H} then
+						{StretchTransformation F H}|{StretchTransformation F T}
+					else
+						case H
+						of note(name:N octave:O sharp:S duration:D instrument:I) then
       						note(name:N octave:O sharp:S duration:(D*F) instrument:I)|{StretchTransformation F T}
-      					else error(cause:H comment:noteItemNoDetected)
-      					end
-      				end
-      			else error(cause:P comment:wrongInput)
-      			end
-      		end
+						else error(cause:H comment:noteItemNoDetected)
+						end
+					end
+				else error(cause:P comment:wrongInput)
+				end
+			end
 
-      		fun{TransposeTransformation ST P}
-      			case P
-      			of nil then nil
-      			[] H|T then
-      				if {IsExtendedChord H} then
-      					{TransposeTransformation ST H}|{TransposeTransformation ST T}
-      				else {TransposeNote ST H}|{TransposeTransformation ST T} end
-      			else error(cause:P comment:noteAPartition) end
-      		end
+			fun{TransposeTransformation ST P}
+				case P
+				of nil then nil
+				[] H|T then
+					if {IsExtendedChord H} then
+						{TransposeTransformation ST H}|{TransposeTransformation ST T}
+					else {TransposeNote ST H}|{TransposeTransformation ST T} end
+				else error(cause:P comment:noteAPartition) end
+			end
 		in
 			case Tr 
 			of duration(seconds:S P) then 
@@ -153,26 +153,26 @@ local
 			[] transpose(semitones:SN P) then
 				{TransposeTransformation SN {PartitionConvert P}}
 			else erreur(content:Tr comment:erreur_dans_la_fonction_tranformation_convert) 
-         end
+			end
 		end
-
+		
 		%Retourn si N est au format d'une note
 		fun{IsNote N}
-         case N
-         of Name#Octave then true
-         [] Atom then
-               if Atom == silence then true
-               elseif {Record.toListInd Atom $}\=nil then false
-               elseif {Record.toListInd Atom $}==nil then
-                  if {VirtualString.length Atom $}\=1 andthen {VirtualString.length Atom $}\=2 then false
-                  else true 
-                  end
-               else false
-               end
-         else false 
-         end
-    end
-   
+			case N
+			of Name#Octave then true
+			[] Atom then
+				if Atom == silence then true
+				elseif {Record.toListInd Atom $}\=nil then false
+				elseif {Record.toListInd Atom $}==nil then
+					if {VirtualString.length Atom $}\=1 andthen {VirtualString.length Atom $}\=2 then false
+					else true 
+					end
+				else false
+				end
+			else false 
+			end
+		end
+		
 		%Retourn si N est au format d'un accord
 		fun{IsChord C}
 			case C of nil then true
@@ -180,7 +180,7 @@ local
 			else false
 			end
 		end
-	  
+		
 		%Retourn si N est au format d'une extended note
 		fun{IsExtendedNote EN}
 			case EN of silence(duration:D) then true
@@ -198,13 +198,13 @@ local
 		end
 
 		fun{IsTransformation T}
-      	case T 
-      	of duration(seconds:D 1:P) then true
-      	[]stretch(factor:F P) then true
-      	[]drone(note:N amount:A) then true
-      	[]transpose(semitones:SN P)then true
-      	else false end 
-    	end
+			case T 
+			of duration(seconds:D 1:P) then true
+			[]stretch(factor:F P) then true
+			[]drone(note:N amount:A) then true
+			[]transpose(semitones:SN P)then true
+			else false end 
+		end
 
 		%Convertit une partition en une flatPartition
 		fun{PartitionConvert Partition}
@@ -218,13 +218,13 @@ local
 				elseif {IsTransformation H} then
 					{Append {TransformationConvert H} {PartitionConvert T}}
 				else error(cause:H comment:partitionItemNoDetected)
-            end
+				end
 			end
 		end
 	in
 		{PartitionConvert Partition}
 	end
-
+	
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
    fun {Mix P2T Music}
