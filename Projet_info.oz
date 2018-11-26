@@ -250,6 +250,15 @@ local
         {Atom.is W $}
       end
 
+      fun{IsPartition P}
+        case P of nil then true
+        []H|T then 
+          if {IsExtendedChord H}==false andthen {IsExtendedNote}==false then false
+          else{IsPartition T}
+        else false
+        end
+      end
+
       %retourn si l'input est un Filte
       fun{IsFilter F}
         case F of reverse(A) then true
@@ -313,12 +322,6 @@ local
           end
        end
 
-
-      %FONCTION  MAIN 
-      fun{MixConvert M }
-         nil
-      end
-
       fun{SumTwoList L1 L2 Acc}
           case L1 of nil then Acc
           [] H|T then {SumTwoList L1.2 L2.2 ACC+L1.1+L2.2}
@@ -358,6 +361,17 @@ local
                 end
             end 
           end
+      end
+
+      %FONCTION  MAIN 
+      fun{MixConvert M}
+         case M of nil then nil
+         []H|T then 
+            if {IsSamples H} then H|{MixConvert T}
+            elseif {IsPartition H} then {Append {PartitionToSample H} {MixConvert T}}
+            else error(cause:H comment:cas_Pas_encore_pris_en_charge)
+            end
+         end
       end
 
    in
