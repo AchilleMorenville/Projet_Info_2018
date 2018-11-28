@@ -1,6 +1,6 @@
 local
 	% See project statement for API details.
-	%[Project] = {Link ['Project2018.ozf']}
+	[Project] = {Link ['Project2018.ozf']}
 	Time = {Link ['x-oz://boot/Time']}.1.getReferenceTime
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -363,12 +363,18 @@ local
           end
       end
 
+      %retour un tableau avec les echantillons du fichier wave
+      fun{WaveToSample Wave}
+         {Project.load Wave}
+      end
+
       %FONCTION  MAIN 
       fun{MixConvert M}
          case M of nil then nil
          []H|T then 
-            if {IsSamples H} then H|{MixConvert T}
+            if {IsSamples H} then {Append H {MixConvert T}}
             elseif {IsPartition H} then {Append {PartitionToSample H} {MixConvert T}}
+            elseif {IsWave H}then{Append {WaveToSample H} {MixConvert T}}
             else error(cause:H comment:cas_Pas_encore_pris_en_charge)
             end
          end
