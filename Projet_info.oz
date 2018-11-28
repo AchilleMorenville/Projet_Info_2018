@@ -386,15 +386,17 @@ local
             end
         end
 
-        fun{Loop OldL L NbrElement Acc}
-          case L 
-          of nil then 
-            if NbrElement\=0 then {Loop OldL OldL NbrElement Acc}
-            else Acc|nil
-            end
-          []H|T andthen NbrElement\=0 then {Loop OldL T NbrElement-1 Acc|H}
-          else Acc|nil
-          end
+        %repete la list OldL de sorte d'avoir une liste de NbrElement
+        %retourn une liste 
+        fun{Loop OldL L NbrElement}
+           case L 
+           of nil then 
+              if NbrElement\=0 then {Loop OldL OldL NbrElement}
+              else nil
+              end
+           []H|T andthen NbrElement\=0 then H|{Loop OldL T NbrElement-1}
+           else nil
+           end
         end
 
       in
@@ -402,12 +404,9 @@ local
         of reverse(M) then {Reverse {MixConvert M} nil}
         [] repeat(amount:R M) then {Repeat R {MixConvert M}}
         [] loop(duration:D M) then
-          if D mod ({List.length M $}/44100) ==0 then {Repeat D mod ({List.length M}/44100) {MixConvert M}}
-          else 
             local L={MixConvert M}
-            in {Loop  L L D*44100-1 L.1}
+            in {Loop  L L D*44100-1}
             end
-          end
         [] clip(low:S1 high:S2 M) then true
         [] echo(delay:D decay:F M)then true
         [] fade(start:D1 out:D2 M) then true
