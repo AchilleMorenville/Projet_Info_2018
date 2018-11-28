@@ -395,18 +395,34 @@ local
            end
         end
 
+        %retourn les élements de la liste entre Start+1 et Finish
+        %ex: Start=2 Finish =4  [a b c d e] => [c d]
+        fun{Cut Start Finish M}
+          case M 
+          of nil then
+            if Start >0 then {GetNTime 0 Finish-Start}|nil
+            elseif Start==0 then {GetNTime 0 Finish}|nil
+            end
+          [] H|T then 
+            if Start==0 andthen Finish >0 then H|{Cut Start Finish-1 T}
+            elseif Start==0 andthen Finish==0 then nil
+            elseif Start>0 then {Cut Start-1 Finish-1 T}
+            end
+          end
+        end
+
       in
         case F 
         of reverse(M) then {Reverse {MixConvert M} nil}
         [] repeat(amount:R M) then {Repeat R {MixConvert M}}
         [] loop(duration:D M) then
             local L={MixConvert M}
-            in {Loop  L L D*44100-1}
+            in {Loop  L L D*44100}
             end
         [] clip(low:S1 high:S2 M) then true
         [] echo(delay:D decay:F M)then true
         [] fade(start:D1 out:D2 M) then true
-        [] cut(start:D1 finish:D2 M) then true
+        [] cut(start:D1 finish:D2 M) then {Cut D1*44100 D2*44100 {MixConvert M}}
         else error(cause:Filter comment:filtreNonReconnu)
         end
       end
