@@ -368,13 +368,46 @@ local
          {Project.load Wave}
       end
 
+      %retourn une liste d echantillons
+      fun{FilterToSample Filter}
+        %retourn une liste inversé
+        fun{Reverse L Acc}
+           case L of nil then Acc
+           []H|T then {Reverse T H|Acc}
+           end
+        end
+
+        %repete A foi la liste dechantillons
+        %retourn une liste dechantillons 
+        fun{Repeat A M}
+            if A==0 then nil
+            else 
+              {Append M {Repeat A-1 M}}
+            end
+        end
+
+      in
+        case F 
+        of reverse(M) then {Reverse {MixConvert M} nil}
+        [] repeat(amount:R M) then {Repeat R {MixConvert M}}
+        [] loop(duration:D M) then true
+        [] clip(low:S1 high:S2 M) then true
+        [] echo(delay:D decay:F M)then true
+        [] fade(start:D1 out:D2 M) then true
+        [] cut(start:D1 finish:D2 M) then true
+        else error(cause:Filter comment:filtreNonReconnu)
+        end
+      end
+
       %FONCTION  MAIN 
+      %retour une liste d'echantillons
       fun{MixConvert M}
          case M of nil then nil
          []H|T then 
             if {IsSamples H} then {Append H {MixConvert T}}
             elseif {IsPartition H} then {Append {PartitionToSample H} {MixConvert T}}
             elseif {IsWave H}then{Append {WaveToSample H} {MixConvert T}}
+            elseif {IsFilter H} then {Append {FilterToSample H} {MixConvert T}}
             else error(cause:H comment:cas_Pas_encore_pris_en_charge)
             end
          end
