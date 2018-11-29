@@ -426,7 +426,7 @@ local
         [] clip(low:S1 high:S2 M) then true
         [] echo(delay:D decay:F M)then true
         [] fade(start:D1 out:D2 M) then true
-        [] cut(start:D1 finish:D2 M) then {Cut D1*44100 D2*44100 {MixConvert M}}
+        [] cut(start:D1 finish:D2 M) then {Cut D1*44100 D2*44100+1 {MixConvert M}}
         else error(cause:Filter comment:filtreNonReconnu)
         end
       end
