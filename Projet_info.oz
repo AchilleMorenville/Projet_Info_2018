@@ -431,7 +431,7 @@ local
 		fun{MixConvert M}
 			case M of nil then nil
 			[]H|T then 
-				if {IsSamples H} then H|{MixConvert T}
+				if {IsSamples H} then {Append H {MixConvert T}}
 				elseif {IsPartition H} then {Append {PartitionToSample H} {MixConvert T}}
 				elseif {IsWave H} then {Append {WaveToSample H} {MixConvert T}}
 				elseif {IsFilter H} then {Append {FilterToSample H} {MixConvert T}}
