@@ -408,8 +408,20 @@ local
 					elseif Start==0 andthen Finish==0 then nil
 					elseif Start>0 then {Cut Start-1 Finish-1 T}
 					end
+
 				end
 			end
+
+			fun{Clip Low High Echantillon}
+				case Echantillon of nil then nil
+				[] H|T then
+					if H>High then High|{Clip Low High T}
+					elseif H<Low then Low|{Clip Low High T}
+					else H|{Clip Low High T}
+					end
+				end
+			end
+
 		in
 			case F 
 			of reverse(M) then {Reverse {MixConvert M} nil}
@@ -418,7 +430,7 @@ local
 				local L={MixConvert M}
 				in {Loop  L L D*44100}
 				end
-			[] clip(low:S1 high:S2 M) then true
+			[] clip(low:S1 high:S2 M) then {Clip S1 S2 {MixConvert M}}
 			[] echo(delay:D decay:F M)then true
 			[] fade(start:D1 out:D2 M) then true
 			[] cut(start:D1 finish:D2 M) then {Cut D1*44100 D2*44100+1 {MixConvert M}}
@@ -431,7 +443,7 @@ local
 		fun{MixConvert M}
 			case M of nil then nil
 			[]H|T then 
-				if {IsSamples H} then {Append H {MixConvert T}}
+		  	if {IsSamples H} then {Append H {MixConvert T}}
 				elseif {IsPartition H} then {Append {PartitionToSample H} {MixConvert T}}
 				elseif {IsWave H} then {Append {WaveToSample H} {MixConvert T}}
 				elseif {IsFilter H} then {Append {FilterToSample H} {MixConvert T}}
