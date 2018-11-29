@@ -399,20 +399,24 @@ local
            end
         end
 
-        %retourn les élements de la liste entre Start+1 et Finish
+        %retourn les élements de la liste entre Start et Finish-1
+        %On prend l'index Start on ne prend pas l'index Finish
+        %prend [Start;Finish[
+        % index commence a 0
         %ex: Start=2 Finish =4  [a b c d e] => [c d]
         fun{Cut Start Finish M}
-          case M 
-          of nil then
-            if Start >0 then {GetNTime 0 Finish-Start}|nil
-            elseif Start==0 then {GetNTime 0 Finish}|nil
-            end
-          [] H|T then 
-            if Start==0 andthen Finish >0 then H|{Cut Start Finish-1 T}
-            elseif Start==0 andthen Finish==0 then nil
-            elseif Start>0 then {Cut Start-1 Finish-1 T}
-            end
-          end
+           case M 
+           of nil then
+              if Start >0 then {Cut 0 Finish-Start nil}
+              elseif Start==0 andthen Finish >0 then 0|{Cut Start Finish-1 nil}
+              else nil
+              end
+           [] H|T then 
+              if Start==0 andthen Finish >0 then H|{Cut Start Finish-1 T}
+              elseif Start==0 andthen Finish==0 then nil
+              elseif Start>0 then {Cut Start-1 Finish-1 T}
+              end
+           end
         end
 
       in
