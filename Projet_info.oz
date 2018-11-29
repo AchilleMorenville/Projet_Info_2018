@@ -154,7 +154,7 @@ local
 			else erreur(content:Tr comment:erreur_dans_la_fonction_tranformation_convert) 
 			end
 		end
-		
+
 		%Retourn si N est au format d'une note
 		fun{IsNote N}
 			case N
@@ -226,25 +226,25 @@ local
 	
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-   fun {Mix P2T Music}
-   	%PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE
-      %{Project.readFile 'wave/animaux/cow.wav'}
+	fun {Mix P2T Music}
+	%PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE
+	%{Project.readFile 'wave/animaux/cow.wav'}
 
-      %retourne si l'input est un Samples:= Tableau de Sample
-      fun{IsSamples S}
-        case S of nil then true
-        []H|T then 
-          if{Number.is H $}==false then false
-          else {IsSamples T}
-          end
-        else error(cause:S comment:forat_de_samples)
-        end
-      end
+		%retourne si l'input est un Samples:= Tableau de Sample
+		fun{IsSamples S}
+			case S of nil then true
+			[]H|T then 
+				if{Number.is H $}==false then false
+				else {IsSamples T}
+				end
+			else error(cause:S comment:forat_de_samples)
+			end
+		end
 
-      %retourn si l'input est un atom => correspond un input de type lien de fichier
-      fun{IsWave W}
-        {Atom.is W $}
-      end
+		%retourn si l'input est un atom => correspond un input de type lien de fichier
+		fun{IsWave W}
+			{Atom.is W $}
+			end
 
       fun{IsPartition P}
         case P of nil then true
@@ -436,9 +436,9 @@ local
       fun{MixConvert M}
          case M of nil then nil
          []H|T then 
-            if {IsSamples H} then {Append H {MixConvert T}}
+            if {IsSamples H} then H|{MixConvert T}
             elseif {IsPartition H} then {Append {PartitionToSample H} {MixConvert T}}
-            elseif {IsWave H}then{Append {WaveToSample H} {MixConvert T}}
+            elseif {IsWave H} then {Append {WaveToSample H} {MixConvert T}}
             elseif {IsFilter H} then {Append {FilterToSample H} {MixConvert T}}
             else error(cause:H comment:cas_Pas_encore_pris_en_charge)
             end
