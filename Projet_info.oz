@@ -244,261 +244,255 @@ local
 		%retourn si l'input est un atom => correspond un input de type lien de fichier
 		fun{IsWave W}
 			{Atom.is W $}
+		end
+
+		fun{IsPartition P}
+			case P of nil then true
+			[]H|T then 
+				if {IsExtendedChord H}==false andthen {IsExtendedNote}==false then false
+				else{IsPartition T}
+				end
+			else false
+			end
+		end
+
+		%retourn si l'input est un Filte
+		fun{IsFilter F}
+			case F of reverse(A) then true
+			[] repeat(amount:R M) then true
+			[] loop(duration:D M) then true
+			[] clip(low:S1 high:S2 M) then true
+			[] echo(delay:D decay:F M)then true
+			[] fade(start:D1 out:D2 M) then true
+			[] cut(start:D1 finish:D2 M) then true
+			else false
+			end
+		end
+
+		%Retourne la hauteur d'une note
+		%fac == -1 si la note est en dessou de a4 et ==1 si au dessus de a4
+		fun{GetHauteur N}
+			fun{GetHauteurBis N Fac Acc}
+				if N.name ==a andthen N.octave ==4 then Acc
+				else {GetHauteurBis {TransposeNote Fac*(~1) N} Fac Acc+Fac}
+				end
+			end
+		in
+			if N.octave<4 then {GetHauteurBis N ~1 0}
+			elseif N.octave>4 then {GetHauteurBis N 1 0}
+			elseif N.name<c then {GetHauteurBis N 1 0}
+			elseif N.name>b  then {GetHauteurBis N ~1 0}
+			end
+		end
+
+		%retourn un echantillon d une note
+		fun{GetEchantillon N I}
+			H F PI 
+		in 
+			PI=3.14159265359
+			H={Int.toFloat {GetHauteur N}}
+			F={Number.pow 2.0 H/12.0}
+			0.5*{Float.sin (2.0*PI*F*{Int.toFloat I}/44100.0)}
+		end
+
+		%retourn un tableau sans le nil avec N fois Element  telque Acc=N
+		fun{GetNTime Element Acc}
+			if Acc==1 then Element
+			else Element|{GetNTime Element Acc-1}
+			end
+		end
+
+		%retourn un tableau avec la liste d echantillons d une note.
+		fun{GetNoteEchantillons Note IStart}
+			%retourn un tableau sans le nil avec les echantillons d une note
+			fun{ListOfNTimeEchantillon N I}
+				if {Float.toInt (N.duration)*44100.0}+IStart < I then nil
+				else {GetEchantillon N I}|{ListOfNTimeEchantillon N I+1}
+				end
+			end
+		in
+			case Note of silence(duration:D) then  {GetNTime 0 D*44100}
+			[]note(name:N octave:O sharp:S duration:D instrument:I) then {ListOfNTimeEchantillon Note IStart}
+			else error(cause:Note comment:input_non_error_dans_echantillion)
+			end
+		end
+
+		fun{SumTwoList L1 L2 Acc}
+			case L1 of nil then Acc
+			[] H|T then {SumTwoList L1.2 L2.2 ACC+L1.1+L2.2}
+			end 
+		end
+
+		%retourn un tableau avec les echantillons de la partition
+		%Index est l'
+		fun{PartitionToSample Partition Index}
+			case Partition 
+			of nil then nil 
+			[]H|T then
+				case H 
+				of M1 then %c est une note
+					{GetNoteEchantillons H Index}|{PartitionToSample T Index+M1.duration*44100}
+				[] M1|M2 then % c est un chord
+					local 
+						%retourn les echantillons dun chord sous forme d une liste sans nil
+						fun{SumChordSample Chord Acc}
+							case Chord 
+							of H|nil  then 
+								if Acc==0 then 
+									{GetNoteEchantillons H Index}
+								else {SumTwoList Acc {GetNoteEchantillons H Index}}
+								end
+							[] H|T then 
+								if Acc==0 then 
+									{SumChordSample T {GetNoteEchantillons H Index}}
+								else {SumChordSample T {SumTwoList Acc {GetNoteEchantillons H Index}}} 
+								end
+							end
+						in
+							{SumChordSample H 0}}|{PartitionToSample T Index+M1.duration*44100}
+						end
+					end 
+				end
+			end
+		end
+
+		%retour un tableau avec les echantillons du fichier wave
+		fun{WaveToSample Wave}
+			{Project.load Wave}
+		end
+
+		%retourn une liste d echantillons
+		fun{FilterToSample Filter}
+			%retourn une liste inversé
+			fun{Reverse L Acc}
+				case L of nil then Acc
+				[]H|T then {Reverse T H|Acc}
+				end
 			end
 
-      fun{IsPartition P}
-        case P of nil then true
-        []H|T then 
-          if {IsExtendedChord H}==false andthen {IsExtendedNote}==false then false
-          else{IsPartition T}
-        else false
-        end
-      end
+			%repete A foi la liste dechantillons
+			%retourn une liste dechantillons 
+			fun{Repeat A M}
+				if A==0 then nil
+				else {Append M {Repeat A-1 M}}
+				end
+			end
 
-      %retourn si l'input est un Filte
-      fun{IsFilter F}
-        case F of reverse(A) then true
-        [] repeat(amount:R M) then true
-        [] loop(duration:D M) then true
-        [] clip(low:S1 high:S2 M) then true
-        [] echo(delay:D decay:F M)then true
-        [] fade(start:D1 out:D2 M) then true
-        [] cut(start:D1 finish:D2 M) then true
-        else false
-        end
-      end
+			%repete la list OldL de sorte d'avoir une liste de NbrElement
+			%retourn une liste 
+			fun{Loop OldL L NbrElement}
+				case L 
+				of nil then 
+					if NbrElement\=0 then {Loop OldL OldL NbrElement}
+					else nil
+					end
+				[]H|T andthen NbrElement\=0 then H|{Loop OldL T NbrElement-1}
+				else nil
+				end
+			end
 
-      %Retourne la hauteur d'une note
-      %fac == -1 si la note est en dessou de a4 et ==1 si au dessus de a4
-      fun{GetHauteur N}
-          fun{GetHauteurBis N Fac Acc}
-             if N.name ==a andthen N.octave ==4 then Acc
-             else
-                {GetHauteurBis {TransposeNote Fac*(~1) N} Fac Acc+Fac}
-             end
-          end
-       in
-          if N.octave<4 then {GetHauteurBis N ~1 0}
-          elseif N.octave>4 then {GetHauteurBis N 1 0}
-          elseif N.name<c then {GetHauteurBis N 1 0}
-          elseif N.name>b  then {GetHauteurBis N ~1 0}
-          end
-       end
+			%retourn les élements de la liste entre Start et Finish-1
+			%On prend l'index Start on ne prend pas l'index Finish
+			%prend [Start;Finish[
+			% index commence a 0
+			%ex: Start=2 Finish =4  [a b c d e] => [c d]
+			fun{Cut Start Finish M}
+				case M 
+				of nil then
+					if Start >0 then {Cut 0 Finish-Start nil}
+					elseif Start==0 andthen Finish >0 then 0|{Cut Start Finish-1 nil}
+					else nil
+					end
+				[] H|T then 
+					if Start==0 andthen Finish >0 then H|{Cut Start Finish-1 T}
+					elseif Start==0 andthen Finish==0 then nil
+					elseif Start>0 then {Cut Start-1 Finish-1 T}
+					end
+				end
+			end
+		in
+			case F 
+			of reverse(M) then {Reverse {MixConvert M} nil}
+			[] repeat(amount:R M) then {Repeat R {MixConvert M}}
+			[] loop(duration:D M) then
+				local L={MixConvert M}
+				in {Loop  L L D*44100}
+				end
+			[] clip(low:S1 high:S2 M) then true
+			[] echo(delay:D decay:F M)then true
+			[] fade(start:D1 out:D2 M) then true
+			[] cut(start:D1 finish:D2 M) then {Cut D1*44100 D2*44100+1 {MixConvert M}}
+			else error(cause:Filter comment:filtreNonReconnu)
+			end
+		end
 
-       %retourn un echantillon d une note
-       fun{GetEchantillon N I}
-          H F PI 
-       in 
-          PI=3.14159265359
-          H={Int.toFloat {GetHauteur N}}
-          F={Number.pow 2.0 H/12.0}
-          0.5*{Float.sin (2.0*PI*F*{Int.toFloat I}/44100.0)}
-       end
+		%FONCTION  MAIN 
+		%retour une liste d'echantillons
+		fun{MixConvert M}
+			case M of nil then nil
+			[]H|T then 
+				if {IsSamples H} then H|{MixConvert T}
+				elseif {IsPartition H} then {Append {PartitionToSample H} {MixConvert T}}
+				elseif {IsWave H} then {Append {WaveToSample H} {MixConvert T}}
+				elseif {IsFilter H} then {Append {FilterToSample H} {MixConvert T}}
+				else error(cause:H comment:cas_Pas_encore_pris_en_charge)
+				end
+			end
+		end
 
-       %retourn un tableau sans le nil avec N fois Element  telque Acc=N
-       fun{GetNTime Element Acc}
-          if Acc==1 then Element
-          else Element|{GetNTime Element Acc-1}
-          end
-       end
+	in
+		if Music==nil then nil
+		else {MixConvert Music 0}
+		end
+	end
+	
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE
+	%Music = {Project.load 'joy.dj.oz'}
+	
+	Start
 
-       %retourn un tableau avec la liste d echantillons d une note.
-       fun{GetNoteEchantillons Note IStart}
-
-          %retourn un tableau sans le nil avec les echantillons d une note
-          fun{ListOfNTimeEchantillon N I}
-               if {Float.toInt (N.duration)*44100.0}+IStart < I then nil
-               else {GetEchantillon N I}|{ListOfNTimeEchantillon N I+1}
-               end
-          end
-       in
-          case Note of silence(duration:D) then  {GetNTime 0 D*44100}
-          []note(name:N octave:O sharp:S duration:D instrument:I) then {ListOfNTimeEchantillon Note IStart}
-          else error(cause:Note comment:input_non_error_dans_echantillion)
-          end
-       end
-
-      fun{SumTwoList L1 L2 Acc}
-          case L1 of nil then Acc
-          [] H|T then {SumTwoList L1.2 L2.2 ACC+L1.1+L2.2}
-          end 
-      end
-
-      %retourn un tableau avec les echantillons de la partition
-      %Index est l'
-      fun{PartitionToSample Partition Index}
-          case Partition 
-          of nil then nil 
-          []H|T then
-            case H 
-            of M1 then %c est une note
-              {GetNoteEchantillons H Index}|{PartitionToSample T Index+M1.duration*44100}
-            [] M1|M2 then % c est un chord
-                local 
-                  %retourn les echantillons dun chord sous forme d une liste sans nil
-                  fun{SumChordSample Chord Acc}
-                      case Chord 
-                      of H|nil  then 
-                        if Acc==0 then 
-                            {GetNoteEchantillons H Index}
-                        else
-                            {SumTwoList Acc {GetNoteEchantillons H Index}}
-                        end
-                      [] H|T then 
-                          if Acc==0 then 
-                            {SumChordSample T {GetNoteEchantillons H Index}}
-                          else
-                              {SumChordSample T {SumTwoList Acc {GetNoteEchantillons H Index}}}
-                          end
-                      end
-                  end
-                in
-                  {SumChordSample H 0}}|{PartitionToSample T Index+M1.duration*44100}
-                end
-            end 
-          end
-      end
-
-      %retour un tableau avec les echantillons du fichier wave
-      fun{WaveToSample Wave}
-         {Project.load Wave}
-      end
-
-      %retourn une liste d echantillons
-      fun{FilterToSample Filter}
-        %retourn une liste inversé
-        fun{Reverse L Acc}
-           case L of nil then Acc
-           []H|T then {Reverse T H|Acc}
-           end
-        end
-
-        %repete A foi la liste dechantillons
-        %retourn une liste dechantillons 
-        fun{Repeat A M}
-            if A==0 then nil
-            else 
-              {Append M {Repeat A-1 M}}
-            end
-        end
-
-        %repete la list OldL de sorte d'avoir une liste de NbrElement
-        %retourn une liste 
-        fun{Loop OldL L NbrElement}
-           case L 
-           of nil then 
-              if NbrElement\=0 then {Loop OldL OldL NbrElement}
-              else nil
-              end
-           []H|T andthen NbrElement\=0 then H|{Loop OldL T NbrElement-1}
-           else nil
-           end
-        end
-
-        %retourn les élements de la liste entre Start et Finish-1
-        %On prend l'index Start on ne prend pas l'index Finish
-        %prend [Start;Finish[
-        % index commence a 0
-        %ex: Start=2 Finish =4  [a b c d e] => [c d]
-        fun{Cut Start Finish M}
-           case M 
-           of nil then
-              if Start >0 then {Cut 0 Finish-Start nil}
-              elseif Start==0 andthen Finish >0 then 0|{Cut Start Finish-1 nil}
-              else nil
-              end
-           [] H|T then 
-              if Start==0 andthen Finish >0 then H|{Cut Start Finish-1 T}
-              elseif Start==0 andthen Finish==0 then nil
-              elseif Start>0 then {Cut Start-1 Finish-1 T}
-              end
-           end
-        end
-
-      in
-        case F 
-        of reverse(M) then {Reverse {MixConvert M} nil}
-        [] repeat(amount:R M) then {Repeat R {MixConvert M}}
-        [] loop(duration:D M) then
-            local L={MixConvert M}
-            in {Loop  L L D*44100}
-            end
-        [] clip(low:S1 high:S2 M) then true
-        [] echo(delay:D decay:F M)then true
-        [] fade(start:D1 out:D2 M) then true
-        [] cut(start:D1 finish:D2 M) then {Cut D1*44100 D2*44100+1 {MixConvert M}}
-        else error(cause:Filter comment:filtreNonReconnu)
-        end
-      end
-
-      %FONCTION  MAIN 
-      %retour une liste d'echantillons
-      fun{MixConvert M}
-         case M of nil then nil
-         []H|T then 
-            if {IsSamples H} then H|{MixConvert T}
-            elseif {IsPartition H} then {Append {PartitionToSample H} {MixConvert T}}
-            elseif {IsWave H} then {Append {WaveToSample H} {MixConvert T}}
-            elseif {IsFilter H} then {Append {FilterToSample H} {MixConvert T}}
-            else error(cause:H comment:cas_Pas_encore_pris_en_charge)
-            end
-         end
-      end
-
-   in
-      if Music==nil then nil
-      else
-         {MixConvert Music 0}
-      end
-
-   end
-
-   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   %PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE
-   %Music = {Project.load 'joy.dj.oz'}
-   Start
-
-   % Uncomment next line to insert your tests.
-   % \insert 'tests.oz'
-   % !!! Remove this before submitting.
+	% Uncomment next line to insert your tests.
+	% \insert 'tests.oz'
+	% !!! Remove this before submitting.
 in
-   	Start = {Time}
+	Start = {Time}
 
 	% Uncomment next line to run your tests.
-	% {Test Mix PartitionToTimedList}
-
-   	% Add variables to this list to avoid "local variable used only once"
-   	% warnings.
+	% {Test Mix PartitionToTimedList
+	
+	% Add variables to this list to avoid "local variable used only once"
+	% warnings.
 	%PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE 
-      %{ForAll [NoteToExtended Music] Wait}
+	%{ForAll [NoteToExtended Music] Wait}
    
-   	% Calls your code, prints the result and outputs the result to `out.wav`.
-   	% You don't need to modify this.
+	% Calls your code, prints the result and outputs the result to `out.wav`.
+	% You don't need to modify this.
 	%PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE
-      %{Browse {Project.run Mix PartitionToTimedList Music 'out.wav'}}
+	%{Browse {Project.run Mix PartitionToTimedList Music 'out.wav'}}
 
   
-  %**********TEST*****************  
-   local 
-      proc{Test}
-         N1 C1 EN1 N2 C2 T T2 P T3 P2 T4
-            in
-         N1=a3
-         C1=[a b#4]
-         N2=e
-         EN1=note(name:c octave:4 sharp:true duration:4 instrument:piano)
-         T=duration(seconds:3.0 [N1 N2])
-         T2=drone(note:C1 amount:2)
-        T3=stretch(factor:2.0 [N1])
-        T4=transpose(seminotes:3 [C1])
-         P=[N1 C1 N2 EN1 T T2]
-         P2=[T]
-         {Browse {PartitionToTimedList P2}}
-      end
-   in
-      %{TestDroneTransformation}
-      {Test}
-   end
-   	% Shows the total time to run your code.
-   	{Browse {IntToFloat {Time}-Start} / 1000.0}
+	%**********TEST*****************  
+	local 
+		proc{Test}
+			N1 C1 EN1 N2 C2 T T2 P T3 P2 T4
+		in
+			N1=a3
+			C1=[a b#4]
+			N2=e
+			EN1=note(name:c octave:4 sharp:true duration:4 instrument:piano)
+			T=duration(seconds:3.0 [N1 N2])
+			T2=drone(note:C1 amount:2)
+			T3=stretch(factor:2.0 [N1])
+			T4=transpose(seminotes:3 [C1])
+			P=[N1 C1 N2 EN1 T T2]
+			P2=[T]
+			{Browse {PartitionToTimedList P2}}
+		end
+	in
+		%{TestDroneTransformation}
+		{Test}
+	end
+	% Shows the total time to run your code.
+	{Browse {IntToFloat {Time}-Start} / 1000.0}
 end
