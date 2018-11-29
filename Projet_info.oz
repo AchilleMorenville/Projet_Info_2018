@@ -442,8 +442,8 @@ local
 		fun{MixConvert M}
 			case M of nil then nil
 			[]H|T then 
-				if {IsSamples H} then H|{MixConvert T}
-				elseif {IsPartition H} then {Append {PartitionToSample {P2T H}} {MixConvert T}}
+		  	if {IsSamples H} then {Append H {MixConvert T}}
+				elseif {IsPartition H} then {Append {PartitionToSample H} {MixConvert T}}
 				elseif {IsWave H} then {Append {WaveToSample H} {MixConvert T}}
 				elseif {IsFilter H} then {Append {FilterToSample H} {MixConvert T}}
 				else error(cause:H comment:cas_Pas_encore_pris_en_charge)
