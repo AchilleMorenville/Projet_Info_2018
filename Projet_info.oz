@@ -345,8 +345,8 @@ local
 								end
 							end
 						end
-			       
-			    	in
+
+					in
 						{Append {SumChordSample H 0} {PartitionToSample T Index+{Float.toInt M1.duration*44100.0}}}
 					end
 				[] M1 then %c est une note OK
