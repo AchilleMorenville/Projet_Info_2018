@@ -306,7 +306,7 @@ local
 		fun{GetNoteEchantillons Note IStart}
 					%retourn un tableau sans le nil avec les echantillons d une note
 			fun{ListOfNTimeEchantillon N I}
-				if {Float.toInt N.duration*44100}+IStart < I then nil
+				if {Float.toInt N.duration*44100.0}+IStart < I then nil
 				else {GetEchantillon N I}|{ListOfNTimeEchantillon N I+1}
 				end
 			end
@@ -319,7 +319,7 @@ local
 
 		%retourn une list qui est la somme des deux liste
 		fun{SumTwoList L1 L2}
-			case L1 of nil then Acc
+			case L1 of nil then nil
 			[] H|T then L1.1+L2.1|{SumTwoList T L2.2}
 			end 	
 		end
@@ -329,28 +329,28 @@ local
 			of nil then nil 
 			[]H|T then
 				case H 
-				of M1 then %c est une note OK
-					{Append {GetNoteEchantillons H Index} {PartitionToSample T Index+{Float.toInt M1.duration*44100.0}}}
-				[] M1|M2 then % c est un chord
+				of M1|M2 then % c est un chord
 					local 	
 						fun{SumChordSample Chord Acc}
 							case Chord 
 							of H1|nil  then 
 								if Acc==0 then 
 									{GetNoteEchantillons H1 Index}
-								else {SumTwoList Acc {GetNoteEchantillons H1 Index} 0}
+								else {SumTwoList Acc {GetNoteEchantillons H1 Index}}
 								end
 							[] H1|T1 then 
 								if Acc==0 then 
 									{SumChordSample T1 {GetNoteEchantillons H1 Index}}
-								else {SumChordSample T1 {SumTwoList Acc {GetNoteEchantillons H1 Index} 0}} 
+								else {SumChordSample T1 {SumTwoList Acc {GetNoteEchantillons H1 Index}}} 
 								end
 							end
 						end
 			       
 			    	in
-						{SumChordSample H 0}|{PartitionToSample T Index+M1.duration*44100}
+						{Append {SumChordSample H 0} {PartitionToSample T Index+{Float.toInt M1.duration*44100.0}}}
 					end
+				[] M1 then %c est une note OK
+					{Append {GetNoteEchantillons H Index} {PartitionToSample T Index+{Float.toInt M1.duration*44100.0}}}
 				end
 			end 
 		end
