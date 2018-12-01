@@ -37,20 +37,7 @@ local
 		end
 	end
 	%Retourn si N est au format d'une extended note
-	fun{IsExtendedNote EN}
-		case EN of silence(duration:D) then true
-		[] note(name:N octave:O sharp:S duration:D instrument:I) then true
-		else false
-		end
-	end
-
-	%Retourn si N est au format d'un extended chord
-	fun{IsExtendedChord EC}
-		case EC of nil then true
-		[]H|T then if {IsExtendedNote H}==false then false else {IsExtendedChord T} end
-		else false
-		end
-	end
+	
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%retourn la note transposé de N demi-ton
@@ -96,6 +83,21 @@ local
 	end
 
 	fun {PartitionToTimedList Partition} 
+
+		fun{IsExtendedNote EN}
+			case EN of silence(duration:D) then true
+			[] note(name:N octave:O sharp:S duration:D instrument:I) then true
+			else false
+			end
+		end
+
+		%Retourn si N est au format d'un extended chord
+		fun{IsExtendedChord EC}
+			case EC of nil then true
+			[]H|T then if {IsExtendedNote H}==false then false else {IsExtendedChord T} end
+			else false
+			end
+		end
 
 		%Excecute une transformation
 		fun{TransformationConvert Tr}
@@ -236,7 +238,7 @@ local
 				if{Number.is H $}==false then false
 				else {IsSamples T}
 				end
-			else error(cause:S comment:forat_de_samples)
+			else false
 			end
 		end
 
@@ -245,10 +247,27 @@ local
 			{Atom.is W $}
 		end
 
-		fun{IsPartition P}
+		%EST FAUT
+		fun{IsPartitionOlc P}
 			case P of nil then true
 			[]H|T then 
 				if {IsExtendedChord H}==false andthen {IsExtendedNote H}==false then false
+				else{IsPartition T}
+				end
+			else false
+			end
+		end
+
+		%NE SERT A RIEN
+		fun{IsPartition P}
+			case P of nil then true
+			[]H|T then 
+				if {IsExtendedChord H}==false 
+					andthen {IsExtendedNote H}==false 
+					andthen {IsNote H}==false 
+					andthen {IsChord H} 
+					andthen {IsTransformation H}==false
+					then false
 				else{IsPartition T}
 				end
 			else false
@@ -442,13 +461,16 @@ local
 		%retour une liste d'echantillons
 		fun{MixConvert M}
 			case M of nil then nil
-			[]H|T then 
-		  	if {IsSamples H} then {Append H {MixConvert T}}
-				elseif {IsPartition H} then {Append {PartitionToSample H 1} {MixConvert T}}
-				elseif {IsWave H} then {Append {WaveToSample H} {MixConvert T}}
-				elseif {IsFilter H} then {Append {FilterToSample H} {MixConvert T}}
-				else error(cause:H comment:cas_Pas_encore_pris_en_charge)
-				end
+			[]H|T then
+				case H of samples(S) then {Append S {MixConvert T}}
+				[] partition(P) then {Append {PartitionToSample {P2T P} 1} {MixConvert T}}
+				[] wave(W) then {Append {WaveToSample W} {MixConvert T}}
+				[] merge(MI) then error(merge_pas_encore_pret)
+				else
+					if {IsFilter H} then {Append {FilterToSample H} {MixConvert T}}
+					else error(cause:H comment:cas_Pas_encore_pris_en_charge)
+					end
+				end 		
 			end
 		end
 
@@ -488,6 +510,7 @@ in
 	local 
 		proc{Test}
 			N1 C1 EN1 N2 C2 T T2 P T3 P2 T4
+			FlatPartition
 		in
 			N1=a3
 			C1=[a b#4]
@@ -499,7 +522,9 @@ in
 			T4=transpose(seminotes:3 [C1])
 			P=[N1 C1 N2 EN1 T T2]
 			P2=[T]
-			{Browse {PartitionToTimedList P2}}
+			FlatPartition={PartitionToTimedList P2}
+			MixResult={Mix PartitionToTimedList [Partition]}
+	 		{Browse {Project.writeFile 'C:/Users/Olivier/Documents/Projet_Info_2018/out.wav' MixResult}}
 		end
 	in
 		%{TestDroneTransformation}
