@@ -1,3 +1,4 @@
+
 local
 	% See project statement for API details.
 	[Project] = {Link ['Project2018.ozf']}
@@ -331,7 +332,7 @@ local
 				case H 
 				of M1|M2 then % c est un chord
 					local 	
-						fun{SumChordSample Chord Acc}
+						fun{SumChordSample Chord Acc} %fait la somm
 							case Chord 
 							of H1|nil  then 
 								if Acc==0 then 
