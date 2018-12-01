@@ -36,6 +36,21 @@ local
 		[] H|T then {NoteToExtended H}|{ChordToExtended T} 
 		end
 	end
+	%Retourn si N est au format d'une extended note
+	fun{IsExtendedNote EN}
+		case EN of silence(duration:D) then true
+		[] note(name:N octave:O sharp:S duration:D instrument:I) then true
+		else false
+		end
+	end
+
+	%Retourn si N est au format d'un extended chord
+	fun{IsExtendedChord EC}
+		case EC of nil then true
+		[]H|T then if {IsExtendedNote H}==false then false else {IsExtendedChord T} end
+		else false
+		end
+	end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%retourn la note transposé de N demi-ton
@@ -181,21 +196,6 @@ local
 			end
 		end
 		
-		%Retourn si N est au format d'une extended note
-		fun{IsExtendedNote EN}
-			case EN of silence(duration:D) then true
-			[] note(name:N octave:O sharp:S duration:D instrument:I) then true
-			else false
-			end
-		end
-
-		%Retourn si N est au format d'un extended chord
-		fun{IsExtendedChord EC}
-			case EC of nil then true
-			[]H|T then if {IsExtendedNote H}==false then false else {IsExtendedChord T} end
-			else false
-			end
-		end
 
 		fun{IsTransformation T}
 			case T 
@@ -423,7 +423,7 @@ local
 			end
 
 		in
-			case F 
+			case Filter
 			of reverse(M) then {Reverse {MixConvert M} nil}
 			[] repeat(amount:R M) then {Repeat R {MixConvert M}}
 			[] loop(duration:D M) then
