@@ -248,7 +248,7 @@ local
 		fun{IsPartition P}
 			case P of nil then true
 			[]H|T then 
-				if {IsExtendedChord H}==false andthen {IsExtendedNote}==false then false
+				if {IsExtendedChord H}==false andthen {IsExtendedNote H}==false then false
 				else{IsPartition T}
 				end
 			else false
@@ -444,7 +444,7 @@ local
 			case M of nil then nil
 			[]H|T then 
 		  	if {IsSamples H} then {Append H {MixConvert T}}
-				elseif {IsPartition H} then {Append {PartitionToSample H} {MixConvert T}}
+				elseif {IsPartition H} then {Append {PartitionToSample H 1} {MixConvert T}}
 				elseif {IsWave H} then {Append {WaveToSample H} {MixConvert T}}
 				elseif {IsFilter H} then {Append {FilterToSample H} {MixConvert T}}
 				else error(cause:H comment:cas_Pas_encore_pris_en_charge)
@@ -454,7 +454,7 @@ local
 
 	in
 		if Music==nil then nil
-		else {MixConvert Music 0}
+		else {MixConvert Music}
 		end
 	end
 	
