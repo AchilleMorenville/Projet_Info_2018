@@ -1,3 +1,4 @@
+
 local
 	% See project statement for API details.
 	[Project] = {Link ['Project2018.ozf']}
@@ -33,6 +34,21 @@ local
 		case Chord
 		of nil then nil
 		[] H|T then {NoteToExtended H}|{ChordToExtended T} 
+		end
+	end
+	%Retourn si N est au format d'une extended note
+	fun{IsExtendedNote EN}
+		case EN of silence(duration:D) then true
+		[] note(name:N octave:O sharp:S duration:D instrument:I) then true
+		else false
+		end
+	end
+
+	%Retourn si N est au format d'un extended chord
+	fun{IsExtendedChord EC}
+		case EC of nil then true
+		[]H|T then if {IsExtendedNote H}==false then false else {IsExtendedChord T} end
+		else false
 		end
 	end
 
@@ -180,21 +196,6 @@ local
 			end
 		end
 		
-		%Retourn si N est au format d'une extended note
-		fun{IsExtendedNote EN}
-			case EN of silence(duration:D) then true
-			[] note(name:N octave:O sharp:S duration:D instrument:I) then true
-			else false
-			end
-		end
-
-		%Retourn si N est au format d'un extended chord
-		fun{IsExtendedChord EC}
-			case EC of nil then true
-			[]H|T then if {IsExtendedNote H}==false then false else {IsExtendedChord T} end
-			else false
-			end
-		end
 
 		fun{IsTransformation T}
 			case T 
@@ -228,8 +229,6 @@ local
 
 	fun {Mix P2T Music}
 	%PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE
-	%{Project.readFile 'wave/animaux/cow.wav'}
-
 		%retourne si l'input est un Samples:= Tableau de Sample
 		fun{IsSamples S}
 			case S of nil then true
@@ -249,7 +248,7 @@ local
 		fun{IsPartition P}
 			case P of nil then true
 			[]H|T then 
-				if {IsExtendedChord H}==false andthen {IsExtendedNote}==false then false
+				if {IsExtendedChord H}==false andthen {IsExtendedNote H}==false then false
 				else{IsPartition T}
 				end
 			else false
@@ -331,7 +330,7 @@ local
 				case H 
 				of M1|M2 then % c est un chord
 					local 	
-						fun{SumChordSample Chord Acc}
+						fun{SumChordSample Chord Acc} %fait la somm
 							case Chord 
 							of H1|nil  then 
 								if Acc==0 then 
@@ -358,7 +357,8 @@ local
 
 		%retour un tableau avec les echantillons du fichier wave
 		fun{WaveToSample Wave}
-			{Project.load Wave}
+         {Project.readFile 'wave/animaux/cow.wav'}
+			%{Project.load Wave}
 		end
 
 		%retourn une liste d echantillons
@@ -423,7 +423,7 @@ local
 			end
 
 		in
-			case F 
+			case Filter
 			of reverse(M) then {Reverse {MixConvert M} nil}
 			[] repeat(amount:R M) then {Repeat R {MixConvert M}}
 			[] loop(duration:D M) then
@@ -444,7 +444,7 @@ local
 			case M of nil then nil
 			[]H|T then 
 		  	if {IsSamples H} then {Append H {MixConvert T}}
-				elseif {IsPartition H} then {Append {PartitionToSample H} {MixConvert T}}
+				elseif {IsPartition H} then {Append {PartitionToSample H 1} {MixConvert T}}
 				elseif {IsWave H} then {Append {WaveToSample H} {MixConvert T}}
 				elseif {IsFilter H} then {Append {FilterToSample H} {MixConvert T}}
 				else error(cause:H comment:cas_Pas_encore_pris_en_charge)
@@ -454,7 +454,7 @@ local
 
 	in
 		if Music==nil then nil
-		else {MixConvert Music 0}
+		else {MixConvert Music}
 		end
 	end
 	
