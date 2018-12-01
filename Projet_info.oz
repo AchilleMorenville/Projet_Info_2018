@@ -91,7 +91,7 @@ local
 			end
 		end
 
-		%Retourn si N est au format d'un extended chord
+		%Retourn si N est au format d un extended chord
 		fun{IsExtendedChord EC}
 			case EC of nil then true
 			[]H|T then if {IsExtendedNote H}==false then false else {IsExtendedChord T} end
@@ -101,7 +101,7 @@ local
 
 		%Excecute une transformation
 		fun{TransformationConvert Tr}
-			%Modifie la durÃ©e des Ã©lements de la FlatPartition par Duration
+			%Modifie la duree des elements de la FlatPartition par Duration
 			fun{DurationTransformation Duration FlatPartition}
 				fun{GetDurationParition P Acc}
 					case P of nil then Acc
@@ -173,7 +173,7 @@ local
 			end
 		end
 
-		%Retourn si N est au format d'une note
+		%Retourn si N est au format d une note
 		fun{IsNote N}
 			case N
 			of Name#Octave then true
@@ -190,7 +190,7 @@ local
 			end
 		end
 		
-		%Retourn si N est au format d'un accord
+		%Retourn si N est au format d un accord
 		fun{IsChord C}
 			case C of nil then true
 			[] H|T then if {IsNote H}==false then false else {IsChord T} end
@@ -231,7 +231,7 @@ local
 
 	fun {Mix P2T Music}
 	%PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE
-		%retourne si l'input est un Samples:= Tableau de Sample
+		%retourne si l input est un Samples
 		fun{IsSamples S}
 			case S of nil then true
 			[]H|T then 
@@ -242,7 +242,7 @@ local
 			end
 		end
 
-		%retourn si l'input est un atom => correspond un input de type lien de fichier
+		%retourn si l input est un atom, ce quicorrespond un input de type lien de fichier
 		fun{IsWave W}
 			{Atom.is W $}
 		end
@@ -274,7 +274,7 @@ local
 			end
 		end
 
-		%retourn si l'input est un Filte
+		%retourn si l input est un Filte
 		fun{IsFilter F}
 			case F of reverse(A) then true
 			[] repeat(amount:R M) then true
@@ -287,8 +287,8 @@ local
 			end
 		end
 
-		%Retourne la hauteur d'une note
-		%fac == -1 si la note est en dessou de a4 et ==1 si au dessus de a4
+		%Retourne la hauteur d une note
+		%fac egal a-1 si la note est en dessou de a4 et egal a 1 si au dessus de a4
 		fun{GetHauteur N}
 			fun{GetHauteurBis N Fac Acc}
 				if N.name ==a andthen N.octave ==4 then Acc
@@ -313,7 +313,7 @@ local
 			0.5*{Float.sin (2.0*PI*F*{Int.toFloat I}/44100.0)}
 		end
 
-		%retourn un tableau sans le nil avec N fois Element  telque Acc=N
+		%retourn un tableau sans le nil avec N fois Element  telque Acc egal a N
 		fun{GetNTime Element Acc}
 			if Acc==1 then Element
 			else Element|{GetNTime Element Acc-1}
@@ -376,13 +376,13 @@ local
 
 		%retour un tableau avec les echantillons du fichier wave
 		fun{WaveToSample Wave}
-         {Project.readFile 'wave/animaux/cow.wav'}
-			%{Project.load Wave}
+         {Project.load Wave}
+
 		end
 
 		%retourn une liste d echantillons
 		fun{FilterToSample Filter}
-			%retourn une liste inversé
+			%retourn une liste inverse
 			fun{Reverse L Acc}
 				case L of nil then Acc
 				[]H|T then {Reverse T H|Acc}
@@ -397,7 +397,7 @@ local
 				end
 			end
 
-			%repete la list OldL de sorte d'avoir une liste de NbrElement
+			%repete la list OldL de sorte d avoir une liste de NbrElement
 			%retourn une liste 
 			fun{Loop OldL L NbrElement}
 				case L 
@@ -410,11 +410,10 @@ local
 				end
 			end
 
-			%retourn les élements de la liste entre Start et Finish-1
-			%On prend l'index Start on ne prend pas l'index Finish
-			%prend [Start;Finish[
+			%retourn les  elements de la liste entre Start et Finish-1
+			%On prend l index Start on ne prend pas l index Finish
+			%prend de Start compris a Finish noncompris
 			% index commence a 0
-			%ex: Start=2 Finish =4  [a b c d e] => [c d]
 			fun{Cut Start Finish M}
 				case M 
 				of nil then
@@ -458,7 +457,7 @@ local
 		end
 
 		%FONCTION  MAIN 
-		%retour une liste d'echantillons
+		%retour une liste d echantillons
 		fun{MixConvert M}
 			case M of nil then nil
 			[]H|T then
@@ -482,13 +481,8 @@ local
 	
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE
-	%Music = {Project.load 'joy.dj.oz'}
 	
 	Start
-
-	% Uncomment next line to insert your tests.
-	% \insert 'tests.oz'
-	% !!! Remove this before submitting.
 in
 	Start = {Time}
 
