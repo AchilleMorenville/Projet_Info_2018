@@ -229,8 +229,6 @@ local
 
 	fun {Mix P2T Music}
 	%PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE
-	%{Project.readFile 'wave/animaux/cow.wav'}
-
 		%retourne si l'input est un Samples:= Tableau de Sample
 		fun{IsSamples S}
 			case S of nil then true
@@ -359,7 +357,8 @@ local
 
 		%retour un tableau avec les echantillons du fichier wave
 		fun{WaveToSample Wave}
-			{Project.load Wave}
+         {Project.readFile 'wave/animaux/cow.wav'}
+			%{Project.load Wave}
 		end
 
 		%retourn une liste d echantillons
