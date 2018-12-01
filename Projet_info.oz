@@ -440,6 +440,42 @@ local
 				end
 			end
 
+			fun{Fade SDuration FDuration M0}
+				X1=1.0/(SDuration*44100.0)
+
+				fun{ApplyEntree NbrElement M}
+					case M of nil then nil
+					[]H|T then
+						if NbrElement\=0 then  {Browse X1} (X1*{Int.toFloat ({List.length M} - NbrElement)})*H|{ApplyEntree NbrElement-1 T}
+						else H|{ApplyEntree NbrElement T}
+						end
+					end
+				end
+
+				X2=1.0/FDuration*44100.0
+
+				fun{ApplySortie NbrElement M Acc}
+					case M of nil then nil
+					[]H|T then
+						if Acc==0 then H*(X2*NbrElement)|{ApplySortie NbrElement-1 T Acc} 
+						else H|{ApplySortie NbrElement T Acc-1}
+						end 
+					end
+				end
+				M1
+			in
+				if SDuration \=0.0 andthen FDuration \=0.0 then 
+					M1={ApplyEntree {Float.toInt SDuration*44100.0} M0}
+					{ApplySortie FDuration*44100.0 M1 {List.length M0}-FDuration*44100.0}
+				elseif SDuration ==0.0 andthen FDuration \=0.0 then
+					{ApplySortie FDuration*44100.0 M0 {List.length M0}-FDuration*44100.0}
+				elseif SDuration \=0.0 andthen FDuration ==0.0 then
+					{ApplyEntree {Float.toInt SDuration*44100.0} M0}
+				else
+					M0
+				end
+			end
+
 		in
 			case Filter
 			of reverse(M) then {Reverse {MixConvert M} nil}
