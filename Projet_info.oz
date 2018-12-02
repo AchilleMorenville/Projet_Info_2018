@@ -520,6 +520,7 @@ local
 	%PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE
 	
 	Start
+	\insert 'tests.oz'
 in
 	Start = {Time}
 
@@ -537,34 +538,12 @@ in
 	%{Browse {Project.run Mix PartitionToTimedList Music 'out.wav'}}
 
   
-	%**********TEST*****************  
-	local 
-		proc{Test}
-		   N1 C1 EN1 N2 C2 T T2 P T3 P2 T4
-		   FlatPartition
-		   MixResult
-		in
-			N1=a3
-			C1=[a b#4]
-			N2=e
-			EN1=note(name:c octave:4 sharp:true duration:4 instrument:piano)
-			T=duration(seconds:3.0 [N1 N2])
-			T2=drone(note:C1 amount:2)
-			T3=stretch(factor:2.0 [N1])
-			T4=transpose(seminotes:3 [C1])
-			P=[N1 C1 N2 EN1 T T2]
-			P2=[T]
-			FlatPartition={PartitionToTimedList P2}
-			MixResult={Mix PartitionToTimedList [FlatPartition]}
-	 		{Browse {Project.writeFile 'C:/Users/Olivier/Documents/Projet_Info_2018/out.wav' MixResult}}
-		end
-		%\insert 'C:/Users/Olivier/Documents/Projet_Info_2018/tests.oz'
-	in
-		
-		%{TestP2T PartitionToSample}
+	
+	{Browse debut}
+	   {TestP2T PartitionToTimedList}
 		%{TestMix PartitionToTimedList MI}
 		%{Test Mix PartitionToTimedList}
-	end
+	   {Browse fin}
 	% Shows the total time to run your code.
 	{Browse {IntToFloat {Time}-Start} / 1000.0}
 end
