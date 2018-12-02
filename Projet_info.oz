@@ -1,10 +1,9 @@
 
 local
 	% See project statement for API details.
-	[Project] = {Link ['Project2018.ozf']}
+	[Project] = {Link ['C:/Users/Olivier/Documents/Projet_Info_2018/Project2018.ozf']}
 	Time = {Link ['x-oz://boot/Time']}.1.getReferenceTime
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 	% Translate a note to the extended notation.
 	fun {NoteToExtended Note}
@@ -376,7 +375,7 @@ local
 
 		%retour un tableau avec les echantillons du fichier wave
 		fun{WaveToSample Wave}
-         {Project.load Wave}
+		   {Project.readFile Wave}
 
 		end
 
@@ -499,7 +498,7 @@ local
 			case M of nil then nil
 			[]H|T then
 				case H of samples(S) then {Append S {MixConvert T}}
-				[] partition(P) then {Append {PartitionToSample {P2T P} 1} {MixConvert T}}
+				[] partition(P) then {Browse {PartitionToSample {P2T P} 1}} {Append {PartitionToSample {P2T P} 1} {MixConvert T}}
 				[] wave(W) then {Append {WaveToSample W} {MixConvert T}}
 				[] merge(MI) then error(merge_pas_encore_pret)
 				else
@@ -539,8 +538,15 @@ in
 
   
 	
-	{Browse debut}
-	   {TestP2T PartitionToTimedList}
+   {Browse debut}
+   local
+      Music=[wave('C:/Users/Olivier/Documents/Projet_Info_2018/chicken.wav')]
+      M2={Project.load 'C:/Users/Olivier/Documents/Projet_Info_2018/joy.dj.oz'}
+   in
+      
+      {Browse {Project.run Mix PartitionToTimedList M2 'C:/Users/Olivier/Documents/Projet_Info_2018/out.wav' $}}
+   end
+   	%{TestP2T PartitionToTimedList}
 		%{TestMix PartitionToTimedList MI}
 		%{Test Mix PartitionToTimedList}
 	   {Browse fin}
