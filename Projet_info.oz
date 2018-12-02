@@ -37,20 +37,7 @@ local
 		end
 	end
 	%Retourn si N est au format d'une extended note
-	fun{IsExtendedNote EN}
-		case EN of silence(duration:D) then true
-		[] note(name:N octave:O sharp:S duration:D instrument:I) then true
-		else false
-		end
-	end
-
-	%Retourn si N est au format d'un extended chord
-	fun{IsExtendedChord EC}
-		case EC of nil then true
-		[]H|T then if {IsExtendedNote H}==false then false else {IsExtendedChord T} end
-		else false
-		end
-	end
+	
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%retourn la note transposé de N demi-ton
@@ -97,9 +84,24 @@ local
 
 	fun {PartitionToTimedList Partition} 
 
+		fun{IsExtendedNote EN}
+			case EN of silence(duration:D) then true
+			[] note(name:N octave:O sharp:S duration:D instrument:I) then true
+			else false
+			end
+		end
+
+		%Retourn si N est au format d un extended chord
+		fun{IsExtendedChord EC}
+			case EC of nil then true
+			[]H|T then if {IsExtendedNote H}==false then false else {IsExtendedChord T} end
+			else false
+			end
+		end
+
 		%Excecute une transformation
 		fun{TransformationConvert Tr}
-			%Modifie la durÃ©e des Ã©lements de la FlatPartition par Duration
+			%Modifie la duree des elements de la FlatPartition par Duration
 			fun{DurationTransformation Duration FlatPartition}
 				fun{GetDurationParition P Acc}
 					case P of nil then Acc
@@ -171,7 +173,7 @@ local
 			end
 		end
 
-		%Retourn si N est au format d'une note
+		%Retourn si N est au format d une note
 		fun{IsNote N}
 			case N
 			of Name#Octave then true
@@ -188,7 +190,7 @@ local
 			end
 		end
 		
-		%Retourn si N est au format d'un accord
+		%Retourn si N est au format d un accord
 		fun{IsChord C}
 			case C of nil then true
 			[] H|T then if {IsNote H}==false then false else {IsChord T} end
@@ -229,33 +231,50 @@ local
 
 	fun {Mix P2T Music}
 	%PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE
-		%retourne si l'input est un Samples:= Tableau de Sample
+		%retourne si l input est un Samples
 		fun{IsSamples S}
 			case S of nil then true
 			[]H|T then 
 				if{Number.is H $}==false then false
 				else {IsSamples T}
 				end
-			else error(cause:S comment:forat_de_samples)
-			end
-		end
-
-		%retourn si l'input est un atom => correspond un input de type lien de fichier
-		fun{IsWave W}
-			{Atom.is W $}
-		end
-
-		fun{IsPartition P}
-			case P of nil then true
-			[]H|T then 
-				if {IsExtendedChord H}==false andthen {IsExtendedNote H}==false then false
-				else{IsPartition T}
-				end
 			else false
 			end
 		end
 
-		%retourn si l'input est un Filte
+		%retourn si l input est un atom, ce quicorrespond un input de type lien de fichier
+		fun{IsWave W}
+			{Atom.is W $}
+		end
+
+		%EST FAUT
+		%fun{IsPartitionOlc P}
+		%	case P of nil then true
+		%	[]H|T then 
+		%		if {IsExtendedChord H}==false andthen {IsExtendedNote H}==false then false
+		%		else{IsPartition T}
+		%		end
+		%	else false
+		%	end
+		%end
+
+		%NE SERT A RIEN
+		%fun{IsPartition P}
+		%	case P of nil then true
+		%	[]H|T then 
+		%		if {IsExtendedChord H}==false 
+		%			andthen {IsExtendedNote H}==false 
+		%			andthen {IsNote H}==false 
+		%			andthen {IsChord H} 
+		%			andthen {IsTransformation H}==false
+		%			then false
+		%		else{IsPartition T}
+		%%		end
+		%	else false
+		%	end
+		%end
+
+		%retourn si l input est un Filte
 		fun{IsFilter F}
 			case F of reverse(A) then true
 			[] repeat(amount:R M) then true
@@ -268,8 +287,8 @@ local
 			end
 		end
 
-		%Retourne la hauteur d'une note
-		%fac == -1 si la note est en dessou de a4 et ==1 si au dessus de a4
+		%Retourne la hauteur d une note
+		%fac egal a-1 si la note est en dessou de a4 et egal a 1 si au dessus de a4
 		fun{GetHauteur N}
 			fun{GetHauteurBis N Fac Acc}
 				if N.name ==a andthen N.octave ==4 then Acc
@@ -294,7 +313,7 @@ local
 			0.5*{Float.sin (2.0*PI*F*{Int.toFloat I}/44100.0)}
 		end
 
-		%retourn un tableau sans le nil avec N fois Element  telque Acc=N
+		%retourn un tableau sans le nil avec N fois Element  telque Acc egal a N
 		fun{GetNTime Element Acc}
 			if Acc==1 then Element
 			else Element|{GetNTime Element Acc-1}
@@ -357,13 +376,13 @@ local
 
 		%retour un tableau avec les echantillons du fichier wave
 		fun{WaveToSample Wave}
-         {Project.readFile 'wave/animaux/cow.wav'}
-			%{Project.load Wave}
+         {Project.load Wave}
+
 		end
 
 		%retourn une liste d echantillons
 		fun{FilterToSample Filter}
-			%retourn une liste inversé
+			%retourn une liste inverse
 			fun{Reverse L Acc}
 				case L of nil then Acc
 				[]H|T then {Reverse T H|Acc}
@@ -378,7 +397,7 @@ local
 				end
 			end
 
-			%repete la list OldL de sorte d'avoir une liste de NbrElement
+			%repete la list OldL de sorte d avoir une liste de NbrElement
 			%retourn une liste 
 			fun{Loop OldL L NbrElement}
 				case L 
@@ -391,11 +410,10 @@ local
 				end
 			end
 
-			%retourn les élements de la liste entre Start et Finish-1
-			%On prend l'index Start on ne prend pas l'index Finish
-			%prend [Start;Finish[
+			%retourn les  elements de la liste entre Start et Finish-1
+			%On prend l index Start on ne prend pas l index Finish
+			%prend de Start compris a Finish noncompris
 			% index commence a 0
-			%ex: Start=2 Finish =4  [a b c d e] => [c d]
 			fun{Cut Start Finish M}
 				case M 
 				of nil then
@@ -422,6 +440,43 @@ local
 				end
 			end
 
+			%INCOMPLET 
+			fun{Fade SDuration FDuration M0}
+				X1=1.0/(SDuration*44100.0)
+
+				fun{ApplyEntree NbrElement M}
+					case M of nil then nil
+					[]H|T then
+						if NbrElement\=0 then  {Browse X1} (X1*{Int.toFloat ({List.length M} - NbrElement)})*H|{ApplyEntree NbrElement-1 T}
+						else H|{ApplyEntree NbrElement T}
+						end
+					end
+				end
+
+				X2=1.0/FDuration*44100.0
+
+				fun{ApplySortie NbrElement M Acc}
+					case M of nil then nil
+					[]H|T then
+						if Acc==0 then H*(X2*NbrElement)|{ApplySortie NbrElement-1 T Acc} 
+						else H|{ApplySortie NbrElement T Acc-1}
+						end 
+					end
+				end
+				M1
+			in
+				if SDuration \=0.0 andthen FDuration \=0.0 then 
+					M1={ApplyEntree {Float.toInt SDuration*44100.0} M0}
+					{ApplySortie FDuration*44100.0 M1 {List.length M0}-FDuration*44100.0}
+				elseif SDuration ==0.0 andthen FDuration \=0.0 then
+					{ApplySortie FDuration*44100.0 M0 {List.length M0}-FDuration*44100.0}
+				elseif SDuration \=0.0 andthen FDuration ==0.0 then
+					{ApplyEntree {Float.toInt SDuration*44100.0} M0}
+				else
+					M0
+				end
+			end
+
 		in
 			case Filter
 			of reverse(M) then {Reverse {MixConvert M} nil}
@@ -439,16 +494,19 @@ local
 		end
 
 		%FONCTION  MAIN 
-		%retour une liste d'echantillons
+		%retour une liste d echantillons
 		fun{MixConvert M}
 			case M of nil then nil
-			[]H|T then 
-		  	if {IsSamples H} then {Append H {MixConvert T}}
-				elseif {IsPartition H} then {Append {PartitionToSample H 1} {MixConvert T}}
-				elseif {IsWave H} then {Append {WaveToSample H} {MixConvert T}}
-				elseif {IsFilter H} then {Append {FilterToSample H} {MixConvert T}}
-				else error(cause:H comment:cas_Pas_encore_pris_en_charge)
-				end
+			[]H|T then
+				case H of samples(S) then {Append S {MixConvert T}}
+				[] partition(P) then {Append {PartitionToSample {P2T P} 1} {MixConvert T}}
+				[] wave(W) then {Append {WaveToSample W} {MixConvert T}}
+				[] merge(MI) then error(merge_pas_encore_pret)
+				else
+					if {IsFilter H} then {Append {FilterToSample H} {MixConvert T}}
+					else error(cause:H comment:cas_Pas_encore_pris_en_charge)
+					end
+				end 		
 			end
 		end
 
@@ -460,13 +518,9 @@ local
 	
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE
-	%Music = {Project.load 'joy.dj.oz'}
 	
 	Start
-
-	% Uncomment next line to insert your tests.
-	% \insert 'tests.oz'
-	% !!! Remove this before submitting.
+	\insert 'tests.oz'
 in
 	Start = {Time}
 
@@ -484,27 +538,12 @@ in
 	%{Browse {Project.run Mix PartitionToTimedList Music 'out.wav'}}
 
   
-	%**********TEST*****************  
-	local 
-		proc{Test}
-			N1 C1 EN1 N2 C2 T T2 P T3 P2 T4
-		in
-			N1=a3
-			C1=[a b#4]
-			N2=e
-			EN1=note(name:c octave:4 sharp:true duration:4 instrument:piano)
-			T=duration(seconds:3.0 [N1 N2])
-			T2=drone(note:C1 amount:2)
-			T3=stretch(factor:2.0 [N1])
-			T4=transpose(seminotes:3 [C1])
-			P=[N1 C1 N2 EN1 T T2]
-			P2=[T]
-			{Browse {PartitionToTimedList P2}}
-		end
-	in
-		%{TestDroneTransformation}
-		{Test}
-	end
+	
+	{Browse debut}
+	   {TestP2T PartitionToTimedList}
+		%{TestMix PartitionToTimedList MI}
+		%{Test Mix PartitionToTimedList}
+	   {Browse fin}
 	% Shows the total time to run your code.
 	{Browse {IntToFloat {Time}-Start} / 1000.0}
 end
