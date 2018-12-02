@@ -440,6 +440,7 @@ local
 				end
 			end
 
+			%INCOMPLET 
 			fun{Fade SDuration FDuration M0}
 				X1=1.0/(SDuration*44100.0)
 
@@ -556,9 +557,12 @@ in
 			MixResult={Mix PartitionToTimedList [Partition]}
 	 		{Browse {Project.writeFile 'C:/Users/Olivier/Documents/Projet_Info_2018/out.wav' MixResult}}
 		end
+		\insert 'C:/Users/Olivier/Documents/Projet_Info_2018/tests.oz'
 	in
-		%{TestDroneTransformation}
-		{Test}
+		
+		{TestP2T PartitionToSample}
+		{TestMix PartitionToTimedList MI}
+		{Test Mix PartitionToTimedList}
 	end
 	% Shows the total time to run your code.
 	{Browse {IntToFloat {Time}-Start} / 1000.0}
