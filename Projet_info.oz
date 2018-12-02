@@ -248,31 +248,31 @@ local
 		end
 
 		%EST FAUT
-		fun{IsPartitionOlc P}
-			case P of nil then true
-			[]H|T then 
-				if {IsExtendedChord H}==false andthen {IsExtendedNote H}==false then false
-				else{IsPartition T}
-				end
-			else false
-			end
-		end
+		%fun{IsPartitionOlc P}
+		%	case P of nil then true
+		%	[]H|T then 
+		%		if {IsExtendedChord H}==false andthen {IsExtendedNote H}==false then false
+		%		else{IsPartition T}
+		%		end
+		%	else false
+		%	end
+		%end
 
 		%NE SERT A RIEN
-		fun{IsPartition P}
-			case P of nil then true
-			[]H|T then 
-				if {IsExtendedChord H}==false 
-					andthen {IsExtendedNote H}==false 
-					andthen {IsNote H}==false 
-					andthen {IsChord H} 
-					andthen {IsTransformation H}==false
-					then false
-				else{IsPartition T}
-				end
-			else false
-			end
-		end
+		%fun{IsPartition P}
+		%	case P of nil then true
+		%	[]H|T then 
+		%		if {IsExtendedChord H}==false 
+		%			andthen {IsExtendedNote H}==false 
+		%			andthen {IsNote H}==false 
+		%			andthen {IsChord H} 
+		%			andthen {IsTransformation H}==false
+		%			then false
+		%		else{IsPartition T}
+		%%		end
+		%	else false
+		%	end
+		%end
 
 		%retourn si l input est un Filte
 		fun{IsFilter F}
@@ -540,8 +540,9 @@ in
 	%**********TEST*****************  
 	local 
 		proc{Test}
-			N1 C1 EN1 N2 C2 T T2 P T3 P2 T4
-			FlatPartition
+		   N1 C1 EN1 N2 C2 T T2 P T3 P2 T4
+		   FlatPartition
+		   MixResult
 		in
 			N1=a3
 			C1=[a b#4]
@@ -554,15 +555,15 @@ in
 			P=[N1 C1 N2 EN1 T T2]
 			P2=[T]
 			FlatPartition={PartitionToTimedList P2}
-			MixResult={Mix PartitionToTimedList [Partition]}
+			MixResult={Mix PartitionToTimedList [FlatPartition]}
 	 		{Browse {Project.writeFile 'C:/Users/Olivier/Documents/Projet_Info_2018/out.wav' MixResult}}
 		end
-		\insert 'C:/Users/Olivier/Documents/Projet_Info_2018/tests.oz'
+		%\insert 'C:/Users/Olivier/Documents/Projet_Info_2018/tests.oz'
 	in
 		
-		{TestP2T PartitionToSample}
-		{TestMix PartitionToTimedList MI}
-		{Test Mix PartitionToTimedList}
+		%{TestP2T PartitionToSample}
+		%{TestMix PartitionToTimedList MI}
+		%{Test Mix PartitionToTimedList}
 	end
 	% Shows the total time to run your code.
 	{Browse {IntToFloat {Time}-Start} / 1000.0}
