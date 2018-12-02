@@ -202,3 +202,46 @@ proc {Test Mix P2T}
    {System.show 'Mix tests have run'}
    {System.show test(passed:@PassedTests total:@TotalTests)}
 end
+
+fun{BackToTheFutur}
+   Ronde=4.0
+   Blanche=Ronde/2.0
+   Noir=Blanche/2.0
+   Croche=Noir/2.0
+   DoubleCroche=Croche/2.0
+   Soupir=Noir
+   DemiSoupir=Croche
+
+   P=[silence(duration:Soupir)
+   note(name:g octave:4 sharp:false duration:Noir instrument:piano)
+   note(name:d octave:5 sharp:false duration:Noir instrument:piano)
+   note(name:g octave:5 sharp:false duration:Croche instrument:piano)
+   note(name:f octave:5 sharp:true duration:Noir instrument:piano)
+   note(name:f octave:5 sharp:false duration:Croche instrument:piano)
+   note(name:e octave:5 sharp:false duration:Noir instrument:piano)
+   note(name:c octave:5 sharp:false duration:DoubleCroche instrument:piano)
+   note(name:b octave:5 sharp:false duration:DoubleCroche instrument:piano)
+   note(name:c octave:4 sharp:false duration:Ronde instrument:piano)
+   silence(duration:Soupir)
+   note(name:g octave:4 sharp:false duration:Noir instrument:piano)
+   note(name:c octave:5 sharp:false duration:Noir instrument:piano)
+   note(name:b octave:5 sharp:false duration:Croche instrument:piano)
+   note(name:f octave:5 sharp:true duration:Noir instrument:piano)
+   note(name:f octave:5 sharp:false duration:Croche instrument:piano)
+   note(name:e octave:5 sharp:false duration:Noir instrument:piano)
+   note(name:d octave:5 sharp:false duration:DoubleCroche instrument:piano)
+   note(name:c octave:5 sharp:false duration:DoubleCroche instrument:piano)
+   note(name:d octave:5 sharp:false duration:Ronde instrument:piano)
+   note(name:d octave:5 sharp:false duration:Ronde instrument:piano)
+   note(name:d octave:4 sharp:false duration:Blanche instrument:piano)
+   note(name:g octave:4 sharp:false duration:Blanche instrument:piano)
+   note(name:c octave:4 sharp:true duration:Blanche instrument:piano)
+   note(name:d octave:5 sharp:false duration:DoubleCroche instrument:piano)
+   note(name:e octave:5 sharp:false duration:DoubleCroche instrument:piano)
+   note(name:d octave:5 sharp:false duration:Noir instrument:piano)
+   note(name:g octave:4 sharp:false duration:DoubleCroche instrument:piano)
+   note(name:a octave:4 sharp:false duration:DoubleCroche instrument:piano)
+   ]
+in
+   [partition(P)]
+end
