@@ -376,6 +376,45 @@ local
 			end 
 		end
 
+		fun{SumLists A B}
+			if A == nil andthen B == nil then nil
+			elseif A == nil andthen B \= nil then
+				B.1|{SumLists A B.2} 
+			elseif A \= nil andthen B == nil then
+				A.1|{SumLists A.2 B}
+			else
+				(A.1 + B.1)|{SumLists A.2 B.2}
+			end
+		end
+
+		fun{MultList F L}
+			case L
+			of nil then nil
+			[] H|T then F*H|{MultList F T}
+			end
+		end
+
+		fun{MergeToSample Merge}
+			case Merge
+			of merge(L) then
+				local
+					fun{Toz L Acc}
+						case L
+						of nil then Acc
+						[] H|T then
+							case H
+							of F#M then
+								{Toz T {SumLists {MultList F {MixConvert M}} Acc}}
+							end
+						end
+					end	
+				in
+					{Toz L nil}
+				end
+			else error(cause:Merge comment:NotAMerge)
+			end
+		end
+
 
 		%retour un tableau avec les echantillons du fichier wave
 		fun{WaveToSample Wave}
