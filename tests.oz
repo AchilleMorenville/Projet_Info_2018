@@ -92,7 +92,7 @@ in
 end
 
 proc {TestEmptyChords P2T}
-   {Browse {P2T [nil]}}
+   {Browse {P2T [nil}}
 end
 
 proc {TestP2T P2T}
