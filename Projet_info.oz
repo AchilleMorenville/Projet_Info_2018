@@ -535,11 +535,6 @@ in
 	%PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE 
 	%{ForAll [NoteToExtended Music] Wait}
    
-	% Calls your code, prints the result and outputs the result to `out.wav`.
-	% You don't need to modify this.
-	%PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE
-	%{Browse {Project.run Mix PartitionToTimedList Music 'out.wav'}}
-
   
 	
    {Browse debut}
@@ -553,9 +548,9 @@ in
       {Browse {Project.run Mix PartitionToTimedList M1 'C:/Users/Olivier/Documents/Projet_Info_2018/out.wav' $}}
    end
    	%{TestP2T PartitionToTimedList}
-		%{TestMix PartitionToTimedList MI}
-		%{Test Mix PartitionToTimedList}
-	   {Browse fin}
+	%{TestMix PartitionToTimedList MI}
+	%{Test Mix PartitionToTimedList}
+	{Browse fin}
 	% Shows the total time to run your code.
 	{Browse {IntToFloat {Time}-Start} / 1000.0}
 end
