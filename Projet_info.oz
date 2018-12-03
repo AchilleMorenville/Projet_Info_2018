@@ -231,7 +231,9 @@ local
 
 	fun {Mix P2T Music}
 	%PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE
-		%retourne si l input est un Samples
+
+		%retourne true si S est au format d'un Samples
+		%dans le cas contraire, il retourne false
 		fun{IsSamples S}
 			case S of nil then true
 			[]H|T then 
@@ -242,7 +244,8 @@ local
 			end
 		end
 
-		%retourn si l input est un atom, ce quicorrespond un input de type lien de fichier
+		%retourne true si l input peut potentiellement etre un liens vers un fichier. (on ne vereifie pas ici si le fichier existe) 
+		%retourne false dans le cas contraire
 		fun{IsWave W}
 			{Atom.is W $}
 		end
@@ -274,7 +277,8 @@ local
 		%	end
 		%end
 
-		%retourn si l input est un Filte
+		%retourne true si l input est un Filte
+		%retourne false dans le cas contraire
 		fun{IsFilter F}
 			case F of reverse(A) then true
 			[] repeat(amount:R M) then true
@@ -288,7 +292,6 @@ local
 		end
 
 		%Retourne la hauteur d une note
-		%fac egal a-1 si la note est en dessou de a4 et egal a 1 si au dessus de a4
 		fun{GetHauteur N}
 			fun{GetHauteurBis N Fac Acc}
 				if N.name ==a andthen N.octave ==4 then Acc
@@ -296,6 +299,7 @@ local
 				end
 			end
 		in
+			%le -1 correcpond au fait que la note se trouve en dessous de a4, le 1 correspond au fait que la note se trouve au dessus de a4
 			if N.octave<4 then {GetHauteurBis N ~1 0}
 			elseif N.octave>4 then {GetHauteurBis N 1 0}
 			elseif N.name<c then {GetHauteurBis N 1 0}
@@ -303,27 +307,29 @@ local
 			end
 		end
 
-		%retourn un echantillon d une note
+		%retourn un echantillon/sample d une note N et un I (qui est l'index qui permet de faire evoluer le signal sous forme d un sinus)
+		%retourn un  0<= float <=1
+		%l input I est un integer
 		fun{GetEchantillon N I}
 			H F PI 
 		in 
 			PI=3.14159265359
 			H={Int.toFloat {GetHauteur N}}
-		   F={Number.pow 2.0 H/12.0}*440.0
-		   %{Browse F}
-		   0.5*{Float.sin (2.0*PI*F*{Int.toFloat I}/44100.0)}
+			F={Number.pow 2.0 H/12.0}*440.0
+			0.5*{Float.sin (2.0*PI*F*{Int.toFloat I}/44100.0)}
 		end
 
-		%retourn un tableau sans le nil avec N fois Element  telque Acc egal a N
+		%retourn une liste mais sans le nil avec "Acc" foi Element
+		%Acc est un integer
 		fun{GetNTime Element Acc}
 			if Acc==1 then Element
 			else Element|{GetNTime Element Acc-1}
 			end
 		end
 
-		%retourn un tableau avec la liste d echantillons d une note.
+		%retourn une liste avec tout les echantillons correspondants a la note "Note"
 		fun{GetNoteEchantillons Note IStart}
-					%retourn un tableau sans le nil avec les echantillons d une note
+			%retourn une liste les echantillons d une note
 			fun{ListOfNTimeEchantillon N I}
 				if {Float.toInt (N.duration*44100.0)}+IStart < I then nil
 				else {GetEchantillon N I}|{ListOfNTimeEchantillon N I+1}
@@ -336,20 +342,25 @@ local
 			end
 		end
 
-		%retourn une list qui est la somme des deux liste
+		%retourn une liste qui est la somme des deux liste
+		%L1 et L2 doivent etre de la meme longueur
 		fun{SumTwoList L1 L2}
 			case L1 of nil then nil
 			[] H|T then L1.1+L2.1|{SumTwoList T L2.2}
 			end 	
 		end
-		   %index est un int
+
+		%retourne la partition convertie en un Samples (Liste de sample)
+		%index est un integer
 		fun{PartitionToSample Partition Index}
 			case Partition 
 			of nil then nil 
 			[]H|T then
 				case H 
 				of M1|M2 then % c est un chord
-					local 	
+					local
+						%retourne les echantioons d un chord
+						%Acc est un integer
 						fun{SumChordSample Chord Acc} %fait la somm
 							case Chord 
 							of H1|nil  then 
@@ -377,22 +388,25 @@ local
 		end
 
 
-		%retour un tableau avec les echantillons du fichier wave
+		%retour une liste de Sammple qui provienne du fichier Wave
+		%Le fichier Wave doit exister
 		fun{WaveToSample Wave}
 		   {Project.readFile Wave}
 
 		end
 
-		%retourn une liste d echantillons
+		%retourn une liste d echantillons/sample
 		fun{FilterToSample Filter}
-			%retourn une liste inverse
+
+			%retourn une la liste L mais inverse
+			%Acc est un integer
 			fun{Reverse L Acc}
 				case L of nil then Acc
 				[]H|T then {Reverse T H|Acc}
 				end
 			end
 
-			%repete A foi la liste dechantillons
+			%repete "A" foi la liste M
 			%retourn une liste dechantillons 
 			fun{Repeat A M}
 				if A==0 then nil
@@ -400,8 +414,9 @@ local
 				end
 			end
 
-			%repete la list OldL de sorte d avoir une liste de NbrElement
+			%repete la list OldL de sorte d avoir une liste de "NbrElement" element. 
 			%retourn une liste 
+			%OldL et L doivent etre les meme
 			fun{Loop OldL L NbrElement}
 				case L 
 				of nil then 
@@ -413,10 +428,10 @@ local
 				end
 			end
 
-			%retourn les  elements de la liste entre Start et Finish-1
-			%On prend l index Start on ne prend pas l index Finish
+			%retourne les  elements de la liste entre Start et Finish-1
 			%prend de Start compris a Finish noncompris
-			% index commence a 0
+			%index commence a 0
+			%Start et Finish sont des integer
 			fun{Cut Start Finish M}
 				case M 
 				of nil then
@@ -433,6 +448,9 @@ local
 				end
 			end
 
+			%retourne une liste d echantillons entre Low et High
+			%les elements de la liste plus petit que low sont ramenes a low et ceux plus haut que hight sont ramene a high
+			%Low et High sont des Float
 			fun{Clip Low High Echantillon}
 				case Echantillon of nil then nil
 				[] H|T then
@@ -443,25 +461,29 @@ local
 				end
 			end
 
-			%INCOMPLET 
+			%retourne une liste d echantillons avec un fondu d entree de "SDuration" secondes
+			%et un fondu de sortie de "FDuration" secondes
+			%M0 est une liste d echantillons
 			fun{Fade SDuration FDuration M0}
 				X1=1.0/(SDuration*44100.0)
-
+				%applique un fondu d entree sur les "NbrElement" premiers elements a la liste M
 				fun{ApplyEntree NbrElement M}
 					case M of nil then nil
 					[]H|T then
-						if NbrElement\=0 then  {Browse X1} (X1*{Int.toFloat ({List.length M} - NbrElement)})*H|{ApplyEntree NbrElement-1 T}
+						if NbrElement\=0 then (X1*{Int.toFloat ({Float.toInt SDuration*44100.0} - NbrElement)})*H|{ApplyEntree NbrElement-1 T}
 						else H|{ApplyEntree NbrElement T}
 						end
 					end
 				end
 
-				X2=1.0/FDuration*44100.0
-
+				X2=1.0/(FDuration*44100.0)
+				
+				%applique un fondu de sortie sur les "NbrElement" derniers elements a la liste M
+				%Acc est un Integer
 				fun{ApplySortie NbrElement M Acc}
 					case M of nil then nil
 					[]H|T then
-						if Acc==0 then H*(X2*NbrElement)|{ApplySortie NbrElement-1 T Acc} 
+						if Acc==0 then H*(X2*{Int.toFloat NbrElement})|{ApplySortie NbrElement-1 T Acc} 
 						else H|{ApplySortie NbrElement T Acc-1}
 						end 
 					end
@@ -470,9 +492,9 @@ local
 			in
 				if SDuration \=0.0 andthen FDuration \=0.0 then 
 					M1={ApplyEntree {Float.toInt SDuration*44100.0} M0}
-					{ApplySortie FDuration*44100.0 M1 {List.length M0}-FDuration*44100.0}
+					{ApplySortie {Float.toInt FDuration*44100.0} M1 {List.length M0}-{Float.toInt FDuration*44100.0}-1}
 				elseif SDuration ==0.0 andthen FDuration \=0.0 then
-					{ApplySortie FDuration*44100.0 M0 {List.length M0}-FDuration*44100.0}
+					{ApplySortie {Float.toInt FDuration*44100.0} M0 {List.length M0}-FDuration*44100.0}
 				elseif SDuration \=0.0 andthen FDuration ==0.0 then
 					{ApplyEntree {Float.toInt SDuration*44100.0} M0}
 				else
@@ -497,7 +519,8 @@ local
 		end
 
 		%FONCTION  MAIN 
-		%retour une liste d echantillons
+		%retourne une liste d echantillons
+		%retourne un Samples
 		fun{MixConvert M}
 			case M of nil then nil
 			[]H|T then
