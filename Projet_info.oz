@@ -1,4 +1,3 @@
-
 local
 	% See project statement for API details.
 	[Project] = {Link ['C:/Users/Olivier/Documents/Projet_Info_2018/Project2018.ozf']}
@@ -395,24 +394,18 @@ local
 		end
 
 		fun{MergeToSample Merge}
-			case Merge
-			of merge(L) then
-				local
-					fun{Toz L Acc}
-						case L
-						of nil then Acc
-						[] H|T then
-							case H
-							of F#M then
-								{Toz T {SumLists {MultList F {MixConvert M}} Acc}}
-							end
-						end
-					end	
-				in
-					{Toz L nil}
+			fun{Toz L Acc}
+				case L
+				of nil then Acc
+				[] H|T then
+					case H
+					of F#M then
+						{Toz T {SumLists {MultList F {MixConvert M}} Acc}}
+					end
 				end
-			else error(cause:Merge comment:NotAMerge)
-			end
+			end	
+		in
+			{Toz L nil}
 		end
 
 
@@ -543,7 +536,7 @@ local
 				case H of samples(S) then {Append S {MixConvert T}}
 				[] partition(P) then {Append {PartitionToSample {P2T P} 1} {MixConvert T}}
 				[] wave(W) then {Append {WaveToSample W} {MixConvert T}}
-				[] merge(MI) then error(merge_pas_encore_pret)
+				[] merge(MI) then {Append {MergeToSample MI} {MixConvert T}}
 				else
 					if {IsFilter H} then {Append {FilterToSample H} {MixConvert T}}
 					else error(cause:H comment:cas_Pas_encore_pris_en_charge)
