@@ -1,10 +1,9 @@
 
 local
 	% See project statement for API details.
-	[Project] = {Link ['Project2018.ozf']}
+	[Project] = {Link ['C:/Users/Olivier/Documents/Projet_Info_2018/Project2018.ozf']}
 	Time = {Link ['x-oz://boot/Time']}.1.getReferenceTime
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 	% Translate a note to the extended notation.
 	fun {NoteToExtended Note}
@@ -221,6 +220,7 @@ local
 					{Append {TransformationConvert H} {PartitionConvert T}}
 				else error(cause:H comment:partitionItemNoDetected)
 				end
+			else error(cause:Partition comment:partitionCOnvert)
 			end
 		end
 	in
@@ -309,8 +309,9 @@ local
 		in 
 			PI=3.14159265359
 			H={Int.toFloat {GetHauteur N}}
-			F={Number.pow 2.0 H/12.0}
-			0.5*{Float.sin (2.0*PI*F*{Int.toFloat I}/44100.0)}
+		   F={Number.pow 2.0 H/12.0}*440.0
+		   %{Browse F}
+		   0.5*{Float.sin (2.0*PI*F*{Int.toFloat I}/44100.0)}
 		end
 
 		%retourn un tableau sans le nil avec N fois Element  telque Acc egal a N
@@ -324,12 +325,12 @@ local
 		fun{GetNoteEchantillons Note IStart}
 					%retourn un tableau sans le nil avec les echantillons d une note
 			fun{ListOfNTimeEchantillon N I}
-				if {Float.toInt N.duration*44100.0}+IStart < I then nil
+				if {Float.toInt (N.duration*44100.0)}+IStart < I then nil
 				else {GetEchantillon N I}|{ListOfNTimeEchantillon N I+1}
 				end
 			end
 		in
-			case Note of silence(duration:D) then  {GetNTime 0 {Float.toInt D*44100}}
+			case Note of silence(duration:D) then  {GetNTime 0 {Float.toInt D*44100.0}}
 			[]note(name:N octave:O sharp:S duration:D instrument:I) then {ListOfNTimeEchantillon Note IStart}
 			else error(cause:Note comment:input_non_error_dans_echantillion)
 			end
@@ -368,15 +369,17 @@ local
 						{Append {SumChordSample H 0} {PartitionToSample T Index+{Float.toInt M1.duration*44100.0}}}
 					end
 				[] M1 then %c est une note OK
-					{Append {GetNoteEchantillons H Index} {PartitionToSample T Index+{Float.toInt M1.duration*44100.0}}}
+					{Append {GetNoteEchantillons H 0} {PartitionToSample T Index+{Float.toInt M1.duration*44100.0}}}
+				else error
 				end
+			else error(cause:Partition comment:partitionToSampleElse)
 			end 
 		end
 
 
 		%retour un tableau avec les echantillons du fichier wave
 		fun{WaveToSample Wave}
-         {Project.load Wave}
+		   {Project.readFile Wave}
 
 		end
 
@@ -532,18 +535,22 @@ in
 	%PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE 
 	%{ForAll [NoteToExtended Music] Wait}
    
-	% Calls your code, prints the result and outputs the result to `out.wav`.
-	% You don't need to modify this.
-	%PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE
-	%{Browse {Project.run Mix PartitionToTimedList Music 'out.wav'}}
-
   
 	
-	{Browse debut}
-	   {TestP2T PartitionToTimedList}
-		%{TestMix PartitionToTimedList MI}
-		%{Test Mix PartitionToTimedList}
-	   {Browse fin}
+   {Browse debut}
+   local
+      Music=[wave('C:/Users/Olivier/Documents/Projet_Info_2018/chicken.wav')]
+      M2={Project.load 'C:/Users/Olivier/Documents/Projet_Info_2018/joy.dj.oz'}
+      M1=[partition([note(name:a octave:4 sharp:false duration:1.0 instrument:piano)])]
+      M3={BackToTheFutur}
+   in
+      
+      {Browse {Project.run Mix PartitionToTimedList M1 'C:/Users/Olivier/Documents/Projet_Info_2018/out.wav' $}}
+   end
+   	%{TestP2T PartitionToTimedList}
+	%{TestMix PartitionToTimedList MI}
+	%{Test Mix PartitionToTimedList}
+	{Browse fin}
 	% Shows the total time to run your code.
 	{Browse {IntToFloat {Time}-Start} / 1000.0}
 end
