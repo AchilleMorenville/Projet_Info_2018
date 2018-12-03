@@ -512,6 +512,9 @@ local
 				end
 			end
 
+			fun {Echo D F M}
+				{MergeToSample [1.0#M F#{Append [partition([silence(duration:D)])] M}]}
+			end
 		in
 			case Filter
 			of reverse(M) then {Reverse {MixConvert M} nil}
