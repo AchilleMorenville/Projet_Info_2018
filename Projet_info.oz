@@ -1,7 +1,6 @@
-
 local
 	% See project statement for API details.
-	[Project] = {Link ['C:/Users/Olivier/Documents/Projet_Info_2018/Project2018.ozf']}
+	[Project] = {Link ['C:/Users/olivi/Documents/GitHub/Projet_Info_2018/Project2018.ozf']}
 	Time = {Link ['x-oz://boot/Time']}.1.getReferenceTime
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -248,6 +247,7 @@ local
 		%retourne false dans le cas contraire
 		fun{IsWave W}
 			{Atom.is W $}
+		
 		end
 
 		%EST FAUT
@@ -392,7 +392,7 @@ local
 		%Le fichier Wave doit exister
 		fun{WaveToSample Wave}
 		   {Project.readFile Wave}
-
+		   
 		end
 
 		%retourn une liste d echantillons/sample
@@ -546,7 +546,7 @@ local
 	%PAS EN COMMENTAIRE DANS LE CANNEVA DE BASE
 	
 	Start
-	\insert 'tests.oz'
+	%\insert 'C:/Users/olivi/Documents/GitHub/Projet_Info_2018/tests.oz'
 in
 	Start = {Time}
 
@@ -562,13 +562,14 @@ in
 	
    {Browse debut}
    local
-      Music=[wave('C:/Users/Olivier/Documents/Projet_Info_2018/chicken.wav')]
-      M2={Project.load 'C:/Users/Olivier/Documents/Projet_Info_2018/joy.dj.oz'}
+     % Music=[wave('C:/Users/Olivier/Documents/Projet_Info_2018/chicken.wav')]
+      M2={Project.load 'C:/Users/olivi/Documents/GitHub/Projet_Info_2018/joy.dj.oz'}
       M1=[partition([note(name:a octave:4 sharp:false duration:1.0 instrument:piano)])]
-      M3={BackToTheFutur}
+     % M3={BackToTheFutur}
+    
    in
-      
-      {Browse {Project.run Mix PartitionToTimedList M1 'C:/Users/Olivier/Documents/Projet_Info_2018/out.wav' $}}
+
+      {Browse {Project.run Mix PartitionToTimedList M1 'C:/Users/olivi/Documents/GitHub/Projet_Info_2018/out.wav' $}}
    end
    	%{TestP2T PartitionToTimedList}
 	%{TestMix PartitionToTimedList MI}
