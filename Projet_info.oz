@@ -302,7 +302,7 @@ local
 		%Retourne la hauteur d une note
       fun{GetHauteur N}
 	 fun{GetHauteurBis N Fac Acc}
-	    if N.name ==a andthen N.octave ==4 then Acc
+	    if N.name ==a andthen N.octave ==4 andthen N.sharp==false then Acc
 	    else {GetHauteurBis {TransposeNote Fac*(~1) N} Fac Acc+Fac}
 	    end
 	 end
@@ -386,6 +386,7 @@ local
 		  {Append {SumChordSample H 0} {PartitionToSample T Index+{Float.toInt M1.duration*44100.0}}}
 	       end
 	    [] M1 then %c est une note OK
+	       
 	       {Append {GetNoteEchantillons H 0} {PartitionToSample T Index+{Float.toInt M1.duration*44100.0}}}
 	    else error
 	    end
@@ -584,7 +585,7 @@ local
 	    [] partition(P) then {Append {PartitionToSample {P2T P} 1} {MixConvert T}}
 	    [] wave(W) then {Append {WaveToSample W} {MixConvert T}}
 	    [] merge(MI) then error(merge_pas_encore_pret)
-	    [] lissage(Partition) then {Lissage Partition}
+	    [] lissage(Partition) then {Lissage  {P2T Partition}}
 	    else
 	       if {IsFilter H} then {Append {FilterToSample H} {MixConvert T}}
 	       else error(cause:H comment:cas_Pas_encore_pris_en_charge)
@@ -621,15 +622,24 @@ in
       M2={Project.load 'C:/Users/olivi/Documents/GitHub/Projet_Info_2018/joy.dj.oz'}
       M1=[partition([note(name:a octave:4 sharp:false duration:1.0 instrument:piano)])]
       M4=[lissage([note(name:a octave:4 sharp:false duration:1.0 instrument:piano) silence(duration:2.0)])]
-      %M3={BackToTheFutur}
+     
     
    in
-
-      %{Browse {Project.run Mix PartitionToTimedList M2 'C:/Users/olivi/Documents/GitHub/Projet_Info_2018/out.wav' $}}
+       case M2 of H|T then
+	 case H of partition(A) then
+	    local
+	       M3=[lissage(A)] in
+	       {Browse M3}
+	       {Browse {Project.run Mix PartitionToTimedList M3 'C:/Users/olivi/Documents/GitHub/Projet_Info_2018/out3.wav' $}}
+	    end
+	    
+	 end
+       end
+       
    
    	%{TestP2T PartitionToTimedList}
 	%{TestMix PartitionToTimedList Mix}
-	{Test Mix PartitionToTimedList}
+	%{Test Mix PartitionToTimedList}
       {Browse fin}
 	% Shows the total time to run your code.
       {Browse {IntToFloat {Time}-Start} / 1000.0}
