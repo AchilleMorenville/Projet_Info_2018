@@ -34,11 +34,11 @@ local
 		[] H|T then {NoteToExtended H}|{ChordToExtended T} 
 		end
 	end
-	%Retourn si N est au format d'une extended note
 	
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	%retourn la note transposé de N demi-ton
+
+	%Retourne la note N transposé de ST demi-ton
 	fun{TransposeNote ST N}
 		if ST == 0 then N
 		else
@@ -82,25 +82,13 @@ local
 
 	fun {PartitionToTimedList Partition} 
 
-		fun{IsExtendedNote EN}
-			case EN of silence(duration:D) then true
-			[] note(name:N octave:O sharp:S duration:D instrument:I) then true
-			else false
-			end
-		end
-
-		%Retourn si N est au format d un extended chord
-		fun{IsExtendedChord EC}
-			case EC of nil then true
-			[]H|T then if {IsExtendedNote H}==false then false else {IsExtendedChord T} end
-			else false
-			end
-		end
-
-		%Excecute une transformation
+		%Excecute la transformation Tr
 		fun{TransformationConvert Tr}
+
 			%Modifie la duree des elements de la FlatPartition par Duration
 			fun{DurationTransformation Duration FlatPartition}
+
+				%Retourne la duree de la partition
 				fun{GetDurationParition P Acc}
 					case P of nil then Acc
 					[] H|T then 
@@ -118,6 +106,7 @@ local
 				end 
 			end
 
+			%Répete Element autant de fois que la quantité indiquée par NBR
 			fun{DroneTransformation Element NBR}
 				case Element of H|T then
 					if NBR==0 then nil
@@ -130,7 +119,7 @@ local
 				end
 			end
 
-			%Attention prend un float en argument
+			%Allonge la durée de la partition P par le facteur F
 			fun{StretchTransformation F P}
 				case P
 				of nil then nil
@@ -148,6 +137,7 @@ local
 				end
 			end
 
+			%Retourne la partition P transposée de ST demi-ton
 			fun{TransposeTransformation ST P}
 				case P
 				of nil then nil
@@ -171,7 +161,7 @@ local
 			end
 		end
 
-		%Retourn si N est au format d une note
+		%Retourne true si N est au format d une note et false sinon
 		fun{IsNote N}
 			case N
 			of Name#Octave then true
@@ -188,22 +178,39 @@ local
 			end
 		end
 		
-		%Retourn si N est au format d un accord
+		%Retourne true si C est au format d un accord et false sinon
 		fun{IsChord C}
 			case C of nil then true
 			[] H|T then if {IsNote H}==false then false else {IsChord T} end
 			else false
 			end
 		end
-		
 
+		%Retourne true si EN est au format d une extended note et false sinon
+		fun{IsExtendedNote EN}
+			case EN of silence(duration:D) then true
+			[] note(name:N octave:O sharp:S duration:D instrument:I) then true
+			else false
+			end
+		end
+
+		%Retourne true si EC est au format d un extended chord et false sinon
+		fun{IsExtendedChord EC}
+			case EC of nil then true
+			[]H|T then if {IsExtendedNote H}==false then false else {IsExtendedChord T} end
+			else false
+			end
+		end
+		
+		%Retourne true si T est une transformation et false sinon
 		fun{IsTransformation T}
 			case T 
 			of duration(seconds:D 1:P) then true
 			[]stretch(factor:F P) then true
 			[]drone(note:N amount:A) then true
 			[]transpose(semitones:SN P)then true
-			else false end 
+			else false
+			end 
 		end
 
 		%Convertit une partition en une flatPartition
@@ -524,7 +531,7 @@ local
 				in {Loop  L L D*44100}
 				end
 			[] clip(low:S1 high:S2 M) then {Clip S1 S2 {MixConvert M}}
-			[] echo(delay:D decay:F M)then true
+			[] echo(delay:D decay:F M)then {Echo D F {MixConvert M}} %%Attention!!!!!!!!!!!!!!!!!!!!!
 			[] fade(start:D1 out:D2 M) then true
 			[] cut(start:D1 finish:D2 M) then {Cut D1*44100 D2*44100+1 {MixConvert M}}
 			else error(cause:Filter comment:filtreNonReconnu)
