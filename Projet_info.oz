@@ -34,11 +34,11 @@ local
 		[] H|T then {NoteToExtended H}|{ChordToExtended T} 
 		end
 	end
-	%Retourn si N est au format d'une extended note
 	
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	%retourn la note transposé de N demi-ton
+
+	%Retourne la note N transposé de ST demi-ton
 	fun{TransposeNote ST N}
 		if ST == 0 then N
 		else
@@ -82,25 +82,13 @@ local
 
 	fun {PartitionToTimedList Partition} 
 
-		fun{IsExtendedNote EN}
-			case EN of silence(duration:D) then true
-			[] note(name:N octave:O sharp:S duration:D instrument:I) then true
-			else false
-			end
-		end
-
-		%Retourn si N est au format d un extended chord
-		fun{IsExtendedChord EC}
-			case EC of nil then true
-			[]H|T then if {IsExtendedNote H}==false then false else {IsExtendedChord T} end
-			else false
-			end
-		end
-
-		%Excecute une transformation
+		%Excecute la transformation Tr
 		fun{TransformationConvert Tr}
+
 			%Modifie la duree des elements de la FlatPartition par Duration
 			fun{DurationTransformation Duration FlatPartition}
+
+				%Retourne la duree de la partition
 				fun{GetDurationParition P Acc}
 					case P of nil then Acc
 					[] H|T then 
@@ -118,6 +106,7 @@ local
 				end 
 			end
 
+			%Répete Element autant de fois que la quantité indiquée par NBR
 			fun{DroneTransformation Element NBR}
 				case Element of H|T then
 					if NBR==0 then nil
@@ -130,7 +119,7 @@ local
 				end
 			end
 
-			%Attention prend un float en argument
+			%Allonge la durée de la partition P par le facteur F
 			fun{StretchTransformation F P}
 				case P
 				of nil then nil
@@ -148,6 +137,7 @@ local
 				end
 			end
 
+			%Retourne la partition P transposée de ST demi-ton
 			fun{TransposeTransformation ST P}
 				case P
 				of nil then nil
@@ -171,7 +161,7 @@ local
 			end
 		end
 
-		%Retourn si N est au format d une note
+		%Retourne true si N est au format d une note et false sinon
 		fun{IsNote N}
 			case N
 			of Name#Octave then true
@@ -188,22 +178,39 @@ local
 			end
 		end
 		
-		%Retourn si N est au format d un accord
+		%Retourne true si C est au format d un accord et false sinon
 		fun{IsChord C}
 			case C of nil then true
 			[] H|T then if {IsNote H}==false then false else {IsChord T} end
 			else false
 			end
 		end
-		
 
+		%Retourne true si EN est au format d une extended note et false sinon
+		fun{IsExtendedNote EN}
+			case EN of silence(duration:D) then true
+			[] note(name:N octave:O sharp:S duration:D instrument:I) then true
+			else false
+			end
+		end
+
+		%Retourne true si EC est au format d un extended chord et false sinon
+		fun{IsExtendedChord EC}
+			case EC of nil then true
+			[]H|T then if {IsExtendedNote H}==false then false else {IsExtendedChord T} end
+			else false
+			end
+		end
+		
+		%Retourne true si T est une transformation et false sinon
 		fun{IsTransformation T}
 			case T 
 			of duration(seconds:D 1:P) then true
 			[]stretch(factor:F P) then true
 			[]drone(note:N amount:A) then true
 			[]transpose(semitones:SN P)then true
-			else false end 
+			else false
+			end 
 		end
 
 		%Convertit une partition en une flatPartition
@@ -369,10 +376,97 @@ local
 			   {GetNoteEchantillons H1 Index}
 			else {SumTwoList Acc {GetNoteEchantillons H1 Index}}
 			end
-		     [] H1|T1 then 
-			if Acc==0 then 
-			   {SumChordSample T1 {GetNoteEchantillons H1 Index}}
-			else {SumChordSample T1 {SumTwoList Acc {GetNoteEchantillons H1 Index}}} 
+
+		end
+
+		%retourn une list qui est la somme des deux liste
+		fun{SumTwoList L1 L2}
+			case L1 of nil then nil
+			[] H|T then L1.1+L2.1|{SumTwoList T L2.2}
+			end 	
+		end
+		   %index est un int
+		fun{PartitionToSample Partition Index}
+			case Partition 
+			of nil then nil 
+			[]H|T then
+				case H 
+				of M1|M2 then % c est un chord
+					local 	
+						fun{SumChordSample Chord Acc} %fait la somm
+							case Chord 
+							of H1|nil  then 
+								if Acc==0 then 
+									{GetNoteEchantillons H1 Index}
+								else {SumTwoList Acc {GetNoteEchantillons H1 Index}}
+								end
+							[] H1|T1 then 
+								if Acc==0 then 
+									{SumChordSample T1 {GetNoteEchantillons H1 Index}}
+								else {SumChordSample T1 {SumTwoList Acc {GetNoteEchantillons H1 Index}}} 
+								end
+							end
+						end
+
+					in
+						{Append {SumChordSample H 0} {PartitionToSample T Index+{Float.toInt M1.duration*44100.0}}}
+					end
+				[] M1 then %c est une note OK
+					{Append {GetNoteEchantillons H 0} {PartitionToSample T Index+{Float.toInt M1.duration*44100.0}}}
+				else error
+				end
+			else error(cause:Partition comment:partitionToSampleElse)
+			end 
+		end
+
+		fun{SumLists A B}
+			if A == nil andthen B == nil then nil
+			elseif A == nil andthen B \= nil then
+				B.1|{SumLists A B.2} 
+			elseif A \= nil andthen B == nil then
+				A.1|{SumLists A.2 B}
+			else
+				(A.1 + B.1)|{SumLists A.2 B.2}
+			end
+		end
+
+		fun{MultList F L}
+			case L
+			of nil then nil
+			[] H|T then F*H|{MultList F T}
+			end
+		end
+
+		fun{MergeToSample Merge}
+			fun{Toz L Acc}
+				case L
+				of nil then Acc
+				[] H|T then
+					case H
+					of F#M then
+						{Toz T {SumLists {MultList F {MixConvert M}} Acc}}
+					end
+				end
+			end	
+		in
+			{Toz L nil}
+		end
+
+
+		%retour un tableau avec les echantillons du fichier wave
+		fun{WaveToSample Wave}
+		   {Project.readFile Wave}
+
+		end
+
+		%retourn une liste d echantillons
+		fun{FilterToSample Filter}
+			%retourn une liste inverse
+			fun{Reverse L Acc}
+				case L of nil then Acc
+				[]H|T then {Reverse T H|Acc}
+				end
+
 			end
 		     end
 		  end
@@ -431,6 +525,7 @@ local
 
 			%retourne les  elements de la liste entre Start et Finish-1
 			%prend de Start compris a Finish noncompris
+
 			%index commence a 0
 			%Start et Finish sont des integer
 	 fun{Cut Start Finish M}
@@ -506,6 +601,10 @@ local
 	       end 
 	    end
 	 end
+      fun {Echo D F M}
+				{MergeToSample [1.0#M F#{Append [partition([silence(duration:D)])] M}]}
+			end
+      
 	 M1
       in
 	 if SDuration \=0.0 andthen FDuration \=0.0 then 
@@ -537,6 +636,7 @@ local
 	    end 		
 	 end
       end
+
 
    in
       if Music==nil then nil
