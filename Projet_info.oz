@@ -629,7 +629,7 @@ in
 	 case H of partition(A) then
 	    local
 	       M3=[lissage(A)] in
-	       {Browse M3}
+	       
 	       {Browse {Project.run Mix PartitionToTimedList M3 'C:/Users/olivi/Documents/GitHub/Projet_Info_2018/out3.wav' $}}
 	    end
 	    
